@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    
+    <link rel="stylesheet" href="_static/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+    <link rel="stylesheet" href="_static/css/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/normalize.css" type="text/css" />
+    <link rel="stylesheet" href="../../../JSAV/css/JSAV.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaMOD-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/jquery-1.11.4-smoothness-ui.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaStyle-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/csf.css" type="text/css" />
+
+    <style>
+      .underline { text-decoration: underline; }
+    </style>
+
+  </head><body>
+       
+    <div class="container">
+
+
+
+<h1>10.8. Function Pointers<a class="headerlink" href="#function-pointers" title="Permalink to this headline">¶</a></h1>
+<p>As we have seen, pointers have many uses in the C language. They can be used to provide indirect
+references to primitive types, form the basis of dynamically sized arrays, create instances of
+structs on demand, manipulate string data, and so on. One additional use of pointers is to create a
+reference to a function. That is, a <a class="reference internal" href="Glossary.html#term-function-pointer"><span class="xref std std-term">function pointer</span></a> is a variable that stores the address
+of a function. Readers who have previous experience with assembly language may recall that the name
+of a function is the same as a global <em>label</em> for an instruction. In other words, the name of
+a function is an alias for the address of the first instruction in the function’s body. A function
+pointer, then, stores this address.</p>
+<p>To get started with function pointers, <a class="reference external" href="#cla-49">Code Listing A.49</a> defines two simple functions
+that we will use later. A key aspect of these functions is that they have the same
+<em>signature</em>. That is, the two functions take the same number of arguments, the types of the
+arguments are identical (the names of the parameters do not matter), and the return type is the
+same. In this example, both functions take two <code class="docutils literal notranslate"><span class="pre">int</span></code> arguments and return an <code class="docutils literal notranslate"><span class="pre">int</span></code>. Lines 6 and
+7 are explicit <em>function prototypes</em> that declare the functions’
+interfaces. Function prototypes are only required when a function is used before it is defined. For
+instance, if line 12 were changed to make a call to <code class="docutils literal notranslate"><span class="pre">sub()</span></code>, the compiler would use the prototype
+on line 7 to confirm that the call is correctly formatted; calling <code class="docutils literal notranslate"><span class="pre">sub</span> <span class="pre">(1,</span> <span class="pre">2)</span></code> would be
+acceptable, while calling <code class="docutils literal notranslate"><span class="pre">sub</span> <span class="pre">(&quot;marine&quot;)</span></code> would not, due to the required parameter types.
+Function prototypes can be omitted (and usually are) if the function definition occurs before the
+first call to it.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-49"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.49:</span>
+<span class="cm">   Two simple arithmetic functions with the same function signature</span>
+<span class="cm"> */</span>
+
+<span class="cm">/* Function prototypes as they might appear in a header file */</span>
+<span class="kt">int</span> <span class="nf">add</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+<span class="kt">int</span> <span class="nf">sub</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+
+<span class="kt">int</span>
+<span class="nf">add</span> <span class="p">(</span><span class="kt">int</span> <span class="n">addend_1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">addend_2</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">addend_1</span> <span class="o">+</span> <span class="n">addend_2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span>
+<span class="nf">sub</span> <span class="p">(</span><span class="kt">int</span> <span class="n">minuend</span><span class="p">,</span> <span class="kt">int</span> <span class="n">subtrahend</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">minuend</span> <span class="o">-</span> <span class="n">subtrahend</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p><a class="reference external" href="#cla-50">Code Listing A.50</a> uses the function declarations from <a class="reference external" href="#cla-49">A.49</a>. Line 5 starts
+by declaring a function pointer variable called <code class="docutils literal notranslate"><span class="pre">fun</span></code>. The full explanation of function pointer
+declarations is provided below. For now, it is sufficient to note that <code class="docutils literal notranslate"><span class="pre">fun</span></code> is a pointer, so it
+can store an address. The names of the functions from <a class="reference external" href="#cla-49">Code Listing A.49</a>, <code class="docutils literal notranslate"><span class="pre">add</span></code> and
+<code class="docutils literal notranslate"><span class="pre">sub</span></code>, are simply readable aliases for the addresses of the functions’ code. In other words, we
+can think of <code class="docutils literal notranslate"><span class="pre">add</span></code> and <code class="docutils literal notranslate"><span class="pre">sub</span></code> as address constants; setting <code class="docutils literal notranslate"><span class="pre">fun</span> <span class="pre">=</span> <span class="pre">add</span></code> is similar to setting
+<code class="docutils literal notranslate"><span class="pre">fun</span> <span class="pre">=</span> <span class="pre">NULL</span></code> to create a null pointer. Lines 5 and 8, then assign the addresses of add and sub to
+the pointer <code class="docutils literal notranslate"><span class="pre">fun</span></code>. The effect of this assignment is to make <code class="docutils literal notranslate"><span class="pre">fun</span></code> an alias for the function at
+that particular point. Lines 6 and 9 demonstrate that using a function pointer to make a function
+call works exactly like a standard function call. That is, the call to <code class="docutils literal notranslate"><span class="pre">fun</span> <span class="pre">(5,</span> <span class="pre">3)</span></code> is identical
+to calling <code class="docutils literal notranslate"><span class="pre">add</span> <span class="pre">(5,</span> <span class="pre">3)</span></code> directly.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-50"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.50:</span>
+<span class="cm">   Declaring a function pointer and assigning its value</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">fun</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">)</span> <span class="o">=</span> <span class="n">add</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">fun</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+
+<span class="n">fun</span> <span class="o">=</span> <span class="n">sub</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">diff</span> <span class="o">=</span> <span class="n">fun</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Sum is %d, difference is %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">sum</span><span class="p">,</span> <span class="n">diff</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Function pointer declarations follow the structure defined in <a href="FunctionPointers.html#funptr">Figure  10.8.1</a>. To
+understand the declaration, the components need to be read from the inside to the outside. That is,
+the middle portion, <code class="docutils literal notranslate"><span class="pre">(*fun),</span></code> is read first. Specifically, the <code class="docutils literal notranslate"><span class="pre">*</span></code> declares a pointer, just as
+any other pointer declaration. Wrapping the <code class="docutils literal notranslate"><span class="pre">*</span></code> and the variable name in parentheses indicates
+that it is a function pointer, in particular. Traversing outward, the rest of the line completes the
+function pointer’s type. The variable declaration starts with a single return type and ends with the
+list of parameter types in parentheses. In sum, a function pointer declaration looks exactly like a
+standard function prototype, with the exception of the <code class="docutils literal notranslate"><span class="pre">(*name)</span></code> structure where the prototype
+would just have the function name.</p>
+<div class="figure mb-2 align-center" id="id5">
+<span id="funptr"></span><a class="reference internal image-reference" href="_images/CSF-Images.A.7.png"><img class="p-3 mb-2 align-center border border-dark rounded-lg" alt="Components of a function pointer declaration" src="_images/CSF-Images.A.7.png" style="width: 80%;" /></a>
+<p class="caption align-center px-3"><span class="caption-text"> Figure 10.8.1: Components of a function pointer declaration</span></p>
+</div>
+<div class="topic border border-dark rounded-lg alert-danger px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-BugWarning.png"><img alt="Decorative bug warning" src="_images/CSF-Images-BugWarning.png" style="width: 90%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Bug Warning</p><hr class="mt-1" />
+<p>When working with function pointers, it is critical to understand the placement and exact role of
+parentheses. The <code class="docutils literal notranslate"><span class="pre">(*name)</span></code> structure is required to declare a variable instance. Similarly, the
+parameter list must also be in parentheses, just like standard function prototypes and definitions.
+One common mistake is to use parentheses on the <em>right side</em> of the assignment statement as shown
+below:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-2 mb-3 notranslate"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">ptr</span><span class="p">)</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="o">=</span> <span class="n">trouble</span> <span class="p">();</span>
+</pre></div>
+</div>
+<p>With one exception, this line is incorrectly written. The declaration on the left indicates that
+there is a new function pointer variable, <code class="docutils literal notranslate"><span class="pre">ptr</span></code>. Any function that <code class="docutils literal notranslate"><span class="pre">ptr</span></code> can be set to must
+adhere to the interface that it accepts no arguments (specified by <code class="docutils literal notranslate"><span class="pre">(void)</span></code>) and returns an
+<code class="docutils literal notranslate"><span class="pre">int</span></code>. Given this declaration, the compiler will check to see if the value being assigned to
+<code class="docutils literal notranslate"><span class="pre">ptr</span></code> has the same type. That is, does the right side of the assignment evaluate to a pointer to
+a function, specifically one that takes no arguments and returns an <code class="docutils literal notranslate"><span class="pre">int</span></code>? Consider one possible
+declaration for the function called <code class="docutils literal notranslate"><span class="pre">trouble()</span></code>:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">int</span> <span class="nf">trouble</span> <span class="p">(</span><span class="kt">void</span><span class="p">);</span> <span class="c1">// trouble&#39;s function prototype</span>
+
+<span class="kt">int</span> 
+<span class="nf">trouble</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* Do something */</span>
+  <span class="k">return</span> <span class="mi">5</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>At first glance, everything looks okay. The prototype on line 1 and the definition of <code class="docutils literal notranslate"><span class="pre">trouble()</span></code>
+both indicate that the function takes no arguments and returns an <code class="docutils literal notranslate"><span class="pre">int</span></code>. However, <strong>that is
+exactly why the assignment above is incorrect</strong>. On the original line, we are not assigning the
+address of the function to <code class="docutils literal notranslate"><span class="pre">ptr</span></code>. Rather, the right hand of the assignment <em>calls</em> <code class="docutils literal notranslate"><span class="pre">trouble()</span></code>,
+which runs and returns the <code class="docutils literal notranslate"><span class="pre">int</span></code> value 5. As such, the line above is equivalent to setting <code class="docutils literal notranslate"><span class="pre">ptr</span>
+<span class="pre">=</span> <span class="pre">5</span></code>; this is assigning an <code class="docutils literal notranslate"><span class="pre">int</span></code> value to a pointer variable, not assigning an address!</p>
+<p>The exception to this description is if <code class="docutils literal notranslate"><span class="pre">trouble()</span></code> was specifically a function that returned
+another function. That is, <code class="docutils literal notranslate"><span class="pre">trouble()</span></code> is a function that takes no arguments and returns a
+pointer to a function, such that the returned function takes no arguments and returns an <code class="docutils literal notranslate"><span class="pre">int</span></code>.
+The syntax for this version of <code class="docutils literal notranslate"><span class="pre">trouble()</span></code> is, frankly, atrocious and unreadable. We provide it
+here for the curious, though we do not recommend ever writing code like this. If it is necessary to
+return a function pointer, <code class="docutils literal notranslate"><span class="pre">typedef</span></code>s can make this code significantly more readable.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* The full prototype to be precise */</span>
+<span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">trouble</span> <span class="p">(</span><span class="kt">void</span><span class="p">))</span> <span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+<span class="kt">int</span>
+<span class="p">(</span><span class="o">*</span><span class="n">trouble</span> <span class="p">(</span><span class="kt">void</span><span class="p">))</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* return a function pointer */</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Perhaps the most confusing aspect of this declaration is which parameter list goes with which
+function. Counterintuitively, the inner portion defines the input parameters for <code class="docutils literal notranslate"><span class="pre">trouble()</span></code>.
+That is, the portion that reads (<code class="docutils literal notranslate"><span class="pre">*trouble</span> <span class="pre">(void)</span></code>) indicates that <code class="docutils literal notranslate"><span class="pre">trouble()</span></code> takes no
+parameters; the portions outside of these parentheses indicate the return type and parameter list
+for the function that <code class="docutils literal notranslate"><span class="pre">trouble()</span></code> returns.</p>
+</div>
+<div class="section" id="passing-function-pointers-as-arguments">
+<h2>10.8.1. Passing Function Pointers as Arguments<a class="headerlink" href="#passing-function-pointers-as-arguments" title="Permalink to this headline">¶</a></h2>
+<p>Given the complexity of declaring and working with function pointers, it is natural to ask why they
+are beneficial or even necessary. The two most common uses are to pass a function as an argument to
+another function and to build a lookup table of functions. We will start with the first example.
+This application might seem familiar to readers who are familiar with functional programming or the
+concept of lambdas that has been added to languages like Java. <a class="reference external" href="#cla-51">Code Listing A.51</a>
+provides an example of this kind of usage, using the (much maligned) Bubble Sort algorithm.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-51"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.51:</span>
+<span class="cm">   Bubble sort implementation that takes a custom comparison operation</span>
+<span class="cm"> */</span>
+
+<span class="kt">void</span>
+<span class="nf">bubble_sort</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">array</span><span class="p">[],</span> <span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">compare</span><span class="p">)</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="p">))</span>
+<span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">compare</span> <span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">array</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+          <span class="kt">void</span> <span class="o">*</span><span class="n">temp</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+          <span class="n">array</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+          <span class="n">array</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>The <code class="docutils literal notranslate"><span class="pre">bubble_sort()</span></code> function takes three parameters: an array of pointers, an array length, and a
+comparison function. As the <code class="docutils literal notranslate"><span class="pre">array</span></code> parameter is an array of <code class="docutils literal notranslate"><span class="pre">void*</span></code> elements, this
+implementation can sort any type of objects. That is, the array could contain pointers to strings,
+pointers to <code class="docutils literal notranslate"><span class="pre">FILE</span></code> objects (e.g., to sort based on file size), or pointers to any custom data
+types. The compare function pointer must point to a function that takes two <code class="docutils literal notranslate"><span class="pre">void*</span></code> inputs and
+returns an <code class="docutils literal notranslate"><span class="pre">int</span></code>. The type cannot indicate this, but any function pointer passed as the compare
+parameter needs to adhere to a convention based on <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code>; return 1 if the first item is
+“greater” than the second, -1 if the second item is “greater,” and 0 if they match. <a class="reference external" href="#cla-52">Code Listing A.52</a>
+provides an example of such a comparison that performs a case-insensitive string
+comparison (as opposed to the case-sensitive nature of <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code>).</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-52"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.52:</span>
+<span class="cm">   A case-insensitive string comparison</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span>
+<span class="nf">strcmp_nocase</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">first</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">second</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* Assume non-empty strings for simplicity */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">first_walk</span> <span class="o">=</span> <span class="n">first</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">second_walk</span> <span class="o">=</span> <span class="n">second</span><span class="p">;</span>
+
+  <span class="cm">/* Walk until one of the strings reaches a null byte */</span>
+  <span class="k">while</span> <span class="p">(</span><span class="o">*</span><span class="n">first_walk</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">second_walk</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="cm">/* Make a lower-case copy of the characters and compare */</span>
+      <span class="kt">int</span> <span class="n">fc</span> <span class="o">=</span> <span class="n">tolower</span> <span class="p">(</span><span class="o">*</span><span class="n">first_walk</span><span class="p">);</span>
+      <span class="kt">int</span> <span class="n">sc</span> <span class="o">=</span> <span class="n">tolower</span> <span class="p">(</span><span class="o">*</span><span class="n">second_walk</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">fc</span> <span class="o">&gt;</span> <span class="n">sc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">fc</span> <span class="o">&lt;</span> <span class="n">sc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+      <span class="cm">/* Continue to the next character if the current matches */</span>
+      <span class="n">first_walk</span><span class="o">++</span><span class="p">;</span>
+      <span class="n">second_walk</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">first_walk</span> <span class="o">==</span> <span class="o">*</span><span class="n">second_walk</span><span class="p">)</span> <span class="c1">// Strings are identical</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">first_walk</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span> <span class="c1">// First was shorter than second</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// First was longer than second</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p><a class="reference external" href="#cla-53">Code Listing A.53</a> applies these two functions to demonstrate the power of function
+pointers for flexible code execution. Line 5 starts with an array of strings with a mixture of
+cases. Line 7 passes this array to <code class="docutils literal notranslate"><span class="pre">bubble_sort()</span></code> along with a pointer to the
+<code class="docutils literal notranslate"><span class="pre">strcmp_nocase()</span></code> function. To be precise, the type of <code class="docutils literal notranslate"><span class="pre">strcmp_nocase()</span></code> does not match the type
+required for the compare parameter to <code class="docutils literal notranslate"><span class="pre">bubble_sort()</span></code>; <code class="docutils literal notranslate"><span class="pre">strcmp_nocase()</span></code> takes two <code class="docutils literal notranslate"><span class="pre">char*</span></code>
+arguments, whereas the type declaration of compare indicates that the function needs to take two
+<code class="docutils literal notranslate"><span class="pre">void*</span></code> arguments. Hence, line 7 explicitly casts <code class="docutils literal notranslate"><span class="pre">strcmp_nocase()</span></code> as needed. Similar casting
+is needed at line 14 for <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code>.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-53"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.53:</span>
+<span class="cm">   Passing two functions as parameters to the generic Bubble Sort</span>
+<span class="cm"> */</span>
+
+<span class="kt">char</span> <span class="o">*</span><span class="n">strings</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&quot;Hello&quot;</span><span class="p">,</span> <span class="s">&quot;goodbye&quot;</span><span class="p">,</span> <span class="s">&quot;Hi&quot;</span><span class="p">,</span> <span class="s">&quot;HIT&quot;</span><span class="p">,</span> <span class="s">&quot;ha&quot;</span> <span class="p">};</span>
+
+<span class="n">bubble_sort</span> <span class="p">((</span><span class="kt">void</span> <span class="o">**</span><span class="p">)</span><span class="n">strings</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="p">))</span><span class="n">strcmp_nocase</span><span class="p">);</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;SORTED (case-insensitive):&quot;</span><span class="p">);</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="n">printf</span> <span class="p">(</span><span class="s">&quot; %s&quot;</span><span class="p">,</span> <span class="n">strings</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="n">bubble_sort</span> <span class="p">((</span><span class="kt">void</span> <span class="o">**</span><span class="p">)</span><span class="n">strings</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="p">))</span><span class="n">strcmp</span><span class="p">);</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;SORTED (case-sensitive):&quot;</span><span class="p">);</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="n">printf</span> <span class="p">(</span><span class="s">&quot; %s&quot;</span><span class="p">,</span> <span class="n">strings</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Although the preceding code works, the number of parentheses and <code class="docutils literal notranslate"><span class="pre">*</span></code> operators can make it hard to
+read. One common way to improve the readability is to use a typedef to simplify the type
+declarations and function calls. <a class="reference external" href="#cla-54">Code Listing A.54</a> demonstrates this practice by
+defining a new type, <code class="docutils literal notranslate"><span class="pre">comp_t</span></code>, as a function pointer that takes two <code class="docutils literal notranslate"><span class="pre">void*</span></code> parameters and
+returns an <code class="docutils literal notranslate"><span class="pre">int</span></code>. Readers who are comfortable with <code class="docutils literal notranslate"><span class="pre">typedef</span></code> may fine the version on line 5 to
+be odd; normally, the new type name appears at the end of the line, just before the <code class="docutils literal notranslate"><span class="pre">;</span></code> character.
+With function pointers, however, the type name is placed where the variable name would go in a
+function pointer declaration. Despite this oddity, line 8 is now easier to read than in <a class="reference external" href="#cla-51">Code
+Listing A.51</a>; the compare parameter now matches the <code class="docutils literal notranslate"><span class="pre">comp_t</span></code> type, and the reader does
+not need to parse the complexities of function pointer declarations. <a class="reference external" href="#cla-55">Code Listing A.55</a>
+shows how the typedef simplifies the calls to <code class="docutils literal notranslate"><span class="pre">bubble_sort()</span></code> with cleaner casting.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-54"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.54:</span>
+<span class="cm">   Simplifying the bubble_sort() interface with a typedef</span>
+<span class="cm"> */</span>
+
+<span class="k">typedef</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">comp_t</span><span class="p">)</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">bubble_sort</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">array</span><span class="p">[],</span> <span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="n">comp_t</span> <span class="n">compare</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* ... omitting the rest ... */</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-55"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.55:</span>
+<span class="cm">   Using the simplified bubble_sort() interface</span>
+<span class="cm"> */</span>
+
+<span class="cm">/* Replacement for A.53, line 7 */</span>
+<span class="n">bubble_sort</span> <span class="p">((</span><span class="kt">void</span> <span class="o">**</span><span class="p">)</span><span class="n">strings</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="n">comp_t</span><span class="p">)</span><span class="n">strcmp_nocase</span><span class="p">);</span>
+
+<span class="cm">/* Replacement for A.53, line 14 */</span>
+<span class="n">bubble_sort</span> <span class="p">((</span><span class="kt">void</span> <span class="o">**</span><span class="p">)</span><span class="n">strings</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="n">comp_t</span><span class="p">)</span><span class="n">strcmp</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="function-pointer-lookup-tables">
+<h2>10.8.2. Function Pointer Lookup Tables<a class="headerlink" href="#function-pointer-lookup-tables" title="Permalink to this headline">¶</a></h2>
+<p>Another common use for function pointers is to create a lookup table of functions. That is, rather than building complex logic structures in code to determine which function needs to be called under certain conditions, this information is represented in a table format, such as a one- or two-dimensional array. To illustrate this concept, assume that <a class="reference external" href="#cla-49">Code Listing A.49</a> has been extended to support the five basic arithmetic operations (addition, subtraction, multiplication, division, modulus). Using these functions, <a class="reference external" href="#cla-56">Code Listing A.56</a> builds a single interface, <code class="docutils literal notranslate"><span class="pre">calculate()</span></code>, that can be used for any of them.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-56"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.56:</span>
+<span class="cm">   Using the simplified bubble_sort() interface</span>
+<span class="cm"> */</span>
+
+<span class="k">typedef</span> <span class="k">enum</span> <span class="n">ops</span> <span class="p">{</span> <span class="n">ADD</span><span class="p">,</span> <span class="n">SUB</span><span class="p">,</span> <span class="n">MUL</span><span class="p">,</span> <span class="n">DIV</span><span class="p">,</span> <span class="n">MOD</span><span class="p">,</span> <span class="n">NOP</span> <span class="p">}</span> <span class="n">op_t</span><span class="p">;</span>
+<span class="k">typedef</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">arith_t</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+
+<span class="kt">int</span>
+<span class="nf">calculate</span> <span class="p">(</span><span class="n">op_t</span> <span class="n">operation</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">static</span> <span class="k">const</span> <span class="n">arith_t</span> <span class="n">ops</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="n">add</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="n">div</span><span class="p">,</span> <span class="n">mod</span> <span class="p">};</span>
+  
+  <span class="k">if</span> <span class="p">(</span><span class="n">operation</span> <span class="o">&gt;=</span> <span class="n">NOP</span> <span class="o">||</span> <span class="n">operation</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">errno</span> <span class="o">=</span> <span class="n">EINVAL</span><span class="p">;</span>
+      <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">ops</span><span class="p">[</span><span class="n">operation</span><span class="p">]</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Lines 5 and 6 start by defining custom types for the valid operations (<code class="docutils literal notranslate"><span class="pre">op_t</span></code>) and the binary
+arithmetic funtions (<code class="docutils literal notranslate"><span class="pre">arith_t)</span></code>. Line 11 defines the lookup table; it is a simple array of the
+five function pointers. (Again, note that these entries are just the names of the functions and do
+not have parentheses.) This line reiterates the value of using a <code class="docutils literal notranslate"><span class="pre">typedef</span></code> for function pointers,
+as the syntax to declare an array of function pointers, along with the <code class="docutils literal notranslate"><span class="pre">static</span></code> and <code class="docutils literal notranslate"><span class="pre">const</span></code>
+keywords, is unnecessarily cumbersome. Defining the enum on line 5 and performing the check on line
+13 ensures that the <code class="docutils literal notranslate"><span class="pre">operation</span></code> is one of the five supported. Line 19, then, actually performs the
+operation. By indexing into the <code class="docutils literal notranslate"><span class="pre">ops</span></code> array, <code class="docutils literal notranslate"><span class="pre">ops[operation]</span></code> evaluates to a pointer to the
+specified function. The <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> notation after that indicates that this function is to be
+executed with <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> as the arguments. This calculate() function takes no special steps
+based on which function is being called (although it would be appropriate to prevent the use of 0
+for <code class="docutils literal notranslate"><span class="pre">y</span></code> with <code class="docutils literal notranslate"><span class="pre">div</span></code> and <code class="docutils literal notranslate"><span class="pre">mod</span></code>); rather, the logic of determining the function lies entirely in
+the lookup table structure. <a class="reference external" href="#cla-57">Code Listing A.57</a> uses this simplified interface to perform
+each of the specified operations.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-57"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.57:</span>
+<span class="cm">   Using the single calculate() interface</span>
+<span class="cm"> */</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;SUM: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">calculate</span> <span class="p">(</span><span class="n">ADD</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;DIF: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">calculate</span> <span class="p">(</span><span class="n">SUB</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;PRO: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">calculate</span> <span class="p">(</span><span class="n">MUL</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;QUO: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">calculate</span> <span class="p">(</span><span class="n">DIV</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;REM: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">calculate</span> <span class="p">(</span><span class="n">MOD</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">));</span>
+</pre></div>
+</td></tr></table></div>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Note.png"><img alt="Decorative note icon" src="_images/CSF-Images-Note.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Note</p><hr class="mt-1" />
+<p>Based just on the toy example of five arithmetic operations, it is fair to object to the need for
+tables of function pointers. Clearly, <a class="reference external" href="#cla-57">Code Listing A.57</a> could simply call <code class="docutils literal notranslate"><span class="pre">add</span> <span class="pre">(5,</span>
+<span class="pre">3)</span></code> instead of calling <code class="docutils literal notranslate"><span class="pre">calculate</span> <span class="pre">(ADD,</span> <span class="pre">5,</span> <span class="pre">3)</span></code> to get the same result. From this example, the
+benefits of function pointers might not be evident. It is important to note, though, that function
+pointers are a difficult topic; this example was designed to be as simple as possible to explain
+the mechanics.</p>
+<p>These lookup tables are widely used in a variety of fields, including compiler design. As the parser
+(one component of a compiler) reads the characters of a file a byte at a time, it needs to keep
+track of what has been read and what was just read. For instance, a C compiler would need to
+distinguish reading a space after <code class="docutils literal notranslate"><span class="pre">&quot;int&quot;</span></code> and reading a space after <code class="docutils literal notranslate"><span class="pre">&quot;int_value&quot;</span></code>, as the
+former is a language keyword and the latter could be a variable name. Trying to write standard
+logic code for this processing is extremely difficult due to the sheer number of possible branches.
+Instead, a two-dimensional lookup table (a very large one!) provides a more manageable approach.
+The details vary, but a simple way to envision it is that each row indicates a <a class="reference internal" href="Glossary.html#term-state"><span class="xref std std-term">state</span></a> that
+represents what has been read (i.e., <code class="docutils literal notranslate"><span class="pre">&quot;i&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;int</span></code>” would be different states);
+the columns would then be used to identify a different function pointer for each possible input character.</p>
+</div>
+</div>
+</div>
+
+
+    </div>
+
+  </body>
+  </html>

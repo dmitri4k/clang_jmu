@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    
+    <link rel="stylesheet" href="_static/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+    <link rel="stylesheet" href="_static/css/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/normalize.css" type="text/css" />
+    <link rel="stylesheet" href="../../../JSAV/css/JSAV.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaMOD-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/jquery-1.11.4-smoothness-ui.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaStyle-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/csf.css" type="text/css" />
+
+    <style>
+      .underline { text-decoration: underline; }
+    </style>
+
+  </head><body>
+       
+    <div class="container">
+
+<h1>10.7. Strings<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>It is often the case that a seemingly simplistic idea or design can turn out to be surprisingly
+complicated. We saw one example of this previously in the discussion of pointers. The definition of
+equating a pointer with an address seems straightforward; the implications of their usage for
+dynamic memory allocation, call-by-reference parameters, variable sizes, and so forth quickly become
+challenging for the programmer. The same can be said for strings in C. As with pointers, we start
+with a basic definition:</p>
+<blockquote class="blockquote text-center">
+  <p>A string is an array of characters ending in the null byte.</p>
+</blockquote><p>To interpret the situation in a slightly different way, the C programming language does not actually
+have a string type in the intuitive sense that makes sense to humans. Instead, C just provides a
+thin veneer of interface for working with fixed-size arrays of <code class="docutils literal notranslate"><span class="pre">char</span></code> data. A string in the C
+sense consists of the array of <code class="docutils literal notranslate"><span class="pre">char</span></code>s that are (typically) observable to a human reader, with
+one additional <code class="docutils literal notranslate"><span class="pre">char</span></code> added to the end of the array. <a class="reference external" href="#cla-36">Code Listing A.36</a> illustrates
+this fact by defining the string <code class="docutils literal notranslate"><span class="pre">&quot;Hello&quot;</span></code> in a very unusual manner: as an array of six
+<code class="docutils literal notranslate"><span class="pre">uint8_t</span></code> values. One key idea here is that everything in the machine is just a number. The
+meaning and interpretation of those bytes as the string <code class="docutils literal notranslate"><span class="pre">&quot;Hello&quot;</span></code> is created by the <code class="docutils literal notranslate"><span class="pre">%s</span></code> format
+specifier, which tells the display to present the ASCII interpretation of the bytes to the user
+instead of the numeric values.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-36"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.36:</span>
+<span class="cm">   Printing &quot;Hello&quot; and turning it into &quot;Ha!&quot;</span>
+<span class="cm"> */</span>
+
+<span class="kt">uint8_t</span> <span class="n">string</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">108</span><span class="p">,</span> <span class="mi">108</span><span class="p">,</span> <span class="mi">111</span><span class="p">,</span> <span class="mi">0</span> <span class="p">};</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;The string is &#39;%s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">string</span><span class="p">);</span>
+
+<span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span><span class="p">;</span>
+<span class="n">string</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0x21</span><span class="p">;</span>
+<span class="n">string</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;The string is &#39;%s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">string</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Since the string is an array, its individual elements can be accessed and modified; line 8 changes
+the <code class="docutils literal notranslate"><span class="pre">'e'</span></code> to <code class="docutils literal notranslate"><span class="pre">'a',</span></code> line 9 changes the first <code class="docutils literal notranslate"><span class="pre">'l'</span></code> to <code class="docutils literal notranslate"><span class="pre">'!',</span></code> and line 10 changes the second
+<code class="docutils literal notranslate"><span class="pre">'l'</span></code> to the null byte <code class="docutils literal notranslate"><span class="pre">'\0'</span></code> (literally the number 0). These changes cause line 11 to print the
+string as <code class="docutils literal notranslate"><span class="pre">&quot;Ha!&quot;</span></code> instead of the original <code class="docutils literal notranslate"><span class="pre">&quot;Hello&quot;</span></code>. These lines did not change the <code class="docutils literal notranslate"><span class="pre">'o'</span></code> byte
+stored as <code class="docutils literal notranslate"><span class="pre">string[4]</span></code>, nor did the original <code class="docutils literal notranslate"><span class="pre">'\0'</span></code> stored in <code class="docutils literal notranslate"><span class="pre">string[5]</span></code> change; both bytes
+are still there in memory as part of the original array. The only reason they do not get printed by
+line 11 is, again, because of the <code class="docutils literal notranslate"><span class="pre">%s</span></code> format specifier, which tells <code class="docutils literal notranslate"><span class="pre">printf()</span></code> to stop printing
+at the first null byte. <a class="reference external" href="#tblA-5">Table A.5</a> illustrates the memory content of this array of chars
+from before and after the modifications, based on three different interpretations for formatting.
+Note that the ASCII interpretation <code class="docutils literal notranslate"><span class="pre">'\0'</span></code> is not displayed to the screen, but is shown here for
+completeness.</p>
+<center>
+<table class="table table-bordered">
+  <tbody>
+    <tr>
+      <td class="jmu-dark-purple-bg text-light py-0" width="50%">ASCII interpretation <code class="text-light">%c</code> or <code class="text-light">%s</code></td>
+      <td class="py-0 center"><code>H</code></td>
+      <td class="py-0 center"><code>e</code></td>
+      <td class="py-0 center"><code>l</code></td>
+      <td class="py-0 center"><code>l</code></td>
+      <td class="py-0 center"><code>o</code></td>
+      <td class="py-0 center"><code>\0</code></td>
+    </tr>
+    <tr>
+      <td class="jmu-dark-purple-bg text-light py-0">Hexadecimal format <code class="text-light">%x</code></td>
+      <td class="py-0 center"><code>48</code></td>
+      <td class="py-0 center"><code>65</code></td>
+      <td class="py-0 center"><code>6c</code></td>
+      <td class="py-0 center"><code>6c</code></td>
+      <td class="py-0 center"><code>6f</code></td>
+      <td class="py-0 center"><code>00</code></td>
+    </tr>
+    <tr>
+      <td class="jmu-dark-purple-bg text-light py-0">Decimal format <code class="text-light">%d</code></td>
+      <td class="py-0 center"><code>72</code></td>
+      <td class="py-0 center"><code>101</code></td>
+      <td class="py-0 center"><code>108</code></td>
+      <td class="py-0 center"><code>108</code></td>
+      <td class="py-0 center"><code>111</code></td>
+      <td class="py-0 center"><code>0</code></td>
+    </tr>
+  </tbody>
+</table>
+<table class="table table-bordered">
+  <tbody>
+    <tr>
+      <td class="jmu-dark-purple-bg text-light py-0" width="50%">ASCII interpretation <code class="text-light">%c</code> or <code class="text-light">%s</code></td>
+      <td class="py-0 center"><code>H</code></td>
+      <td class="py-0 center"><code>a</code></td>
+      <td class="py-0 center"><code>!</code></td>
+      <td class="py-0 center"><code>\0</code></td>
+      <td class="py-0 center"><code>o</code></td>
+      <td class="py-0 center"><code>\0</code></td>
+    </tr>
+    <tr>
+      <td class="jmu-dark-purple-bg text-light py-0">Hexadecimal format <code class="text-light">%x</code></td>
+      <td class="py-0 center"><code>48</code></td>
+      <td class="py-0 center"><code>61</code></td>
+      <td class="py-0 center"><code>21</code></td>
+      <td class="py-0 center"><code>00</code></td>
+      <td class="py-0 center"><code>6f</code></td>
+      <td class="py-0 center"><code>00</code></td>
+    </tr>
+    <tr>
+      <td class="jmu-dark-purple-bg text-light py-0">Decimal format <code class="text-light">%d</code></td>
+      <td class="py-0 center"><code>72</code></td>
+      <td class="py-0 center"><code>97</code></td>
+      <td class="py-0 center"><code>33</code></td>
+      <td class="py-0 center"><code>0</code></td>
+      <td class="py-0 center"><code>111</code></td>
+      <td class="py-0 center"><code>0</code></td>
+    </tr>
+  </tbody>
+</table>
+<p>Table A.5: Three interpretations of the bytes that make up the strings from Code Listing A.36</p>
+</center>
+<br /><p>It is important to observe that there are two things missing from this representation. First, the
+quotation marks <code class="docutils literal notranslate"><span class="pre">&quot;</span></code> used to begin and end the string appear only in the program’s source code.
+They are a construct of the C programming language (and other languages, as well), but they do not
+exist in the memory representation of the string. C needs the quotes to know where the string begins
+and ends in the source code. The machine does not; the string begins at the address of the first
+character and ends at the null byte.</p>
+<p>Second, there is no explicit storage of the string length. This fact follows from the design
+structure that strings are null-terminated arrays. The designers of the language made the choice
+that the string length could always be dynamically determined by traversing through memory until the
+null byte was found. This design choice—using a single extra byte for a null terminator instead of
+four bytes to store an explicit length field—is a quintessential example of the space-time tradeoff
+that system designers face. By requiring extra time to search the string manually, the language
+could save three bytes of space per string; as programs could store and work with many, many
+strings, the cumulative space savings of three bytes per string could be potentially very large. At
+the time the language was designed, execution time was cheap but memory space was prohibitively
+expensive; thus, this design decision was a good tradeoff at the time, given the circumstances.</p>
+<p>Given this understanding of strings as arrays of <code class="docutils literal notranslate"><span class="pre">char</span></code>s, we can now focus on issues related to
+using them in practice. Specifically, we can simply use the more conventional and readable notation
+of <code class="docutils literal notranslate"><span class="pre">&quot;Hello&quot;</span></code> rather than the (equivalent and perhaps more accurate) <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">'H',</span> <span class="pre">'e',</span> <span class="pre">'l',</span> <span class="pre">'l',</span> <span class="pre">'o',</span>
+<span class="pre">'\0'</span> <span class="pre">}</span></code>, assuming that the reader has the correct mental model of the computer’s internal
+representation. The first important consideration to highlight at this point, then, is the question
+of where these six bytes are actually stored in memory.</p>
+<p><a class="reference external" href="#cla-37">Code Listing A.37</a> illustrates this point by creating three different versions of the
+string <code class="docutils literal notranslate"><span class="pre">&quot;Hello&quot;</span></code>. The differences between lines 5, 6, and 7 are small but significant, which the
+other lines of the code reveal. Assuming this code is run inside the body of a function, all three
+variables (<code class="docutils literal notranslate"><span class="pre">array</span></code>, <code class="docutils literal notranslate"><span class="pre">pointer</span></code>, and <code class="docutils literal notranslate"><span class="pre">heap</span></code>) are local and associated with the idea of storage
+on the stack. Line 5, by declaring a local <code class="docutils literal notranslate"><span class="pre">array</span></code>, behaves in the intuitive manner in this
+regard; the <code class="docutils literal notranslate"><span class="pre">array</span></code> variable indicates an array of six bytes that are placed in the function’s
+stack frame. That is, line 5 operates in a similar manner to declaring an array of <code class="docutils literal notranslate"><span class="pre">int</span></code> values or
+any other such local array. Line 6, in contrast, places a pointer variable on the stack; the actual
+bytes of the string are placed into the program’s read-only data section (<code class="docutils literal notranslate"><span class="pre">.rodata</span></code>). Line 7 also
+places a pointer on the stack, but the <code class="docutils literal notranslate"><span class="pre">strdup()</span></code> function returns a pointer to a dynamically
+allocated copy of the string’s bytes on the heap. In short, these three lines illustrate how we can
+determine which memory segment (<code class="docutils literal notranslate"><span class="pre">stack,</span></code> <code class="docutils literal notranslate"><span class="pre">data,</span></code> or <code class="docutils literal notranslate"><span class="pre">heap)</span></code> will contain the bytes of the string.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-37"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.37:</span>
+<span class="cm">   Three different ways to create the string &quot;Hello&quot;</span>
+<span class="cm"> */</span>
+
+<span class="kt">char</span> <span class="n">array</span><span class="p">[]</span> <span class="o">=</span> <span class="s">&quot;Hello&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">pointer</span> <span class="o">=</span> <span class="s">&quot;Hello&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">heap</span> <span class="o">=</span> <span class="n">strdup</span> <span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
+
+<span class="cm">/* None of these is the string length */</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Sizes: %zd %zd %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">array</span><span class="p">),</span>
+        <span class="k">sizeof</span> <span class="p">(</span><span class="n">pointer</span><span class="p">),</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">heap</span><span class="p">));</span>
+
+<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Array version: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">array</span><span class="p">);</span>
+<span class="n">heap</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Heap version: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">heap</span><span class="p">);</span>
+<span class="n">pointer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span><span class="p">;</span> <span class="c1">// run-time exception</span>
+</pre></div>
+</td></tr></table></div>
+<p>Line 6 illustrates a very common source of confusion for those new to the intricacies of C strings.
+Recall that the <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> operator returns the number of bytes required to store a particular
+variable. In the cases of the pointer and heap variables, <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> will always return the same
+answer regardless of the string: 8 (assuming this is a 64-bit architecture). Both of these variables
+are pointers, so sizeof() returns the size of an address; sizeof() never dereferences a pointer to
+determine the size (or length) of the object being pointed to. In the case of the <code class="docutils literal notranslate"><span class="pre">array</span></code>
+variable, <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> returns the total number of bytes allocated for the variable on the stack: 6.
+That is, calling <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> on the array version of declaration will include the null byte.
+Furthermore, assume that we had modified the <code class="docutils literal notranslate"><span class="pre">array</span></code> variable as in <a class="reference external" href="#cla-37">Code Listing A.37</a>, changing the string from <code class="docutils literal notranslate"><span class="pre">&quot;Hello&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;Ha!&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> would still return an
+answer of 6 (not 4), because that is how much storage space the compiler statically associated with
+the variable named <code class="docutils literal notranslate"><span class="pre">array</span></code>. In short, <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> <strong>should never be used to determine the length
+of a string; it does not ever examine the actual contents</strong>. Instead, if you need to compute the
+length of a string, you should always use <code class="docutils literal notranslate"><span class="pre">strlen()</span></code> or <code class="docutils literal notranslate"><span class="pre">strnlen()</span></code>.</p>
+<div class="topic border border-dark rounded-lg alert-danger px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-BugWarning.png"><img alt="Decorative bug warning" src="_images/CSF-Images-BugWarning.png" style="width: 90%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Bug Warning</p><hr class="mt-1" />
+<p>The use of pointers to declare strings leads to a number of subtle misunderstandings that end up as
+bugs in programs. One misunderstanding is that there is a difference between initializing a pointer
+to the empty string (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>) as opposed to <code class="docutils literal notranslate"><span class="pre">NULL</span></code>. The empty string is a <code class="docutils literal notranslate"><span class="pre">char</span></code> array that
+consists of a single <code class="docutils literal notranslate"><span class="pre">char</span></code>: the null byte <code class="docutils literal notranslate"><span class="pre">'\0'</span></code>. As such, initializing a <code class="docutils literal notranslate"><span class="pre">char*</span></code> to the
+empty string makes the pointer point to a valid memory location (the address of the null byte). In
+contrast, setting the <code class="docutils literal notranslate"><span class="pre">char*</span></code> variable to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> makes it point to nothing; dereferencing the
+pointer would produce a segmentation fault. This point of confusion leads to potential errors when
+the strings are used. Consider the following example:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">char</span> <span class="o">*</span><span class="n">empty</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">null</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Empty: %s; null: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">empty</span><span class="p">,</span> <span class="n">null</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Although there is no <code class="docutils literal notranslate"><span class="pre">*</span></code> on line 3, this code involves two pointer dereferences. That is, when
+<code class="docutils literal notranslate"><span class="pre">printf()</span></code> processes the <code class="docutils literal notranslate"><span class="pre">%s</span></code> format specifiers, it needs to get the contents of the string by
+dereferencing the empty and null pointers. When the empty string is processed, nothing interesting
+happens; it is a valid string, but it has no characters to print.</p>
+<p>In contrast, when <code class="docutils literal notranslate"><span class="pre">printf()</span></code> encounters the null pointer, there is a problem; processing <code class="docutils literal notranslate"><span class="pre">%s</span></code>
+involves dereferencing the pointer (which is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>), so this line would traditionally cause a
+segmentation fault. Newer implementations of the C library have modified <code class="docutils literal notranslate"><span class="pre">printf()</span></code> to detect and
+avoid such crashes by printing the string <code class="docutils literal notranslate"><span class="pre">(null)</span></code> when given a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointer. This new
+version only makes this exception for <code class="docutils literal notranslate"><span class="pre">NULL</span></code> exactly. If the pointer is not NULL, but the value
+is not a valid address (e.g., try changing the code above to point to use <code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*null</span> <span class="pre">=</span> <span class="pre">(char</span>
+<span class="pre">*)1;</span></code>), <code class="docutils literal notranslate"><span class="pre">printf()</span></code> will cause a segmentation fault.</p>
+</div>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Library.png"><img alt="Decorative C library image" src="_images/CSF-Images-Library.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">C library functions – &lt;string.h&gt;</p><hr class="mt-1" />
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span> <span class="pre">strdup(const</span> <span class="pre">char</span> <span class="pre">*s1);</span></code></dt>
+<dd>Dynamically allocate a copy on the heap of the string pointed to by s1.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">size_t</span> <span class="pre">strlen(const</span> <span class="pre">char</span> <span class="pre">*s);</span></code></dt>
+<dd>Compute the length of the string pointed to by s, measured in bytes (not including the null byte).</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">size_t</span> <span class="pre">strnlen(const</span> <span class="pre">char</span> <span class="pre">*s,</span> <span class="pre">size_t</span> <span class="pre">maxlen);</span></code></dt>
+<dd>Compute the length like strlen(), but never scan more than maxlen bytes.</dd>
+</dl>
+</div>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Note.png"><img alt="Decorative note icon" src="_images/CSF-Images-Note.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Note</p><hr class="mt-1" />
+<p>All of the C string library functions have a version that starts with <code class="docutils literal notranslate"><span class="pre">str</span></code> and a version that
+starts with <code class="docutils literal notranslate"><span class="pre">strn</span></code>. The <code class="docutils literal notranslate"><span class="pre">strn</span></code> versions take an additional parameter (<code class="docutils literal notranslate"><span class="pre">n</span></code>) that specify a
+maximum number of bytes to operate on. The n parameter provides a safety termination of the
+operation in case the null byte that is supposed to terminate the string has been overwritten. For
+instance, <code class="docutils literal notranslate"><span class="pre">strlen()</span></code> would continue scanning the bytes following the intended string until a
+random null byte is encountered. Consequently, calling <code class="docutils literal notranslate"><span class="pre">strlen()</span></code> on such a string would turn a
+length that is (possibly significantly) larger than the actual length. If we started with the
+string <code class="docutils literal notranslate"><span class="pre">&quot;hello&quot;</span></code> and the null terminator was changed, we might end up with <code class="docutils literal notranslate"><span class="pre">strlen()</span></code>
+indicating that the string is 2500 bytes in length. This incorrect response might cause a crash or
+some other problem later, but the call to <code class="docutils literal notranslate"><span class="pre">strlen()</span></code> itself will not cause direct harm.</p>
+<p>On the other hand, some functions are considered so dangerous that the <code class="docutils literal notranslate"><span class="pre">str</span></code> version should never
+be used. In fact, many projects scan for these functions and automatically reject code submissions
+that contain them. The most famous example of this is the <code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> function that copies one
+string into a buffer that has already been allocated. If the buffer is not big enough, strcpy()
+will write beyond the end of it anyways, potentially corrupting other parts of memory after the
+buffer. For instance, if you allocate a buffer that can store only four bytes of data, using
+<code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> to copy the string <code class="docutils literal notranslate"><span class="pre">&quot;Hello</span> <span class="pre">world</span> <span class="pre">from</span> <span class="pre">your</span> <span class="pre">evil</span> <span class="pre">hacker</span> <span class="pre">friend!&quot;</span></code> will write 41 bytes
+of data; the first four will go into the buffer, and the remaining 37 will clobber the contents of
+memory (i.e., other variables) after the end of the buffer. Over the past several decades, this one
+programming error has been one of the most common and persistent sources of security vulnerabilities.</p>
+</div>
+<div class="section" id="investigating-string-contents">
+<h2>10.7.1. Investigating String Contents<a class="headerlink" href="#investigating-string-contents" title="Permalink to this headline">¶</a></h2>
+<p>Given a pointer to a string, particular an input string, it is common to investigate the string’s contents for a variety of purposes. The C standard library provides several functions that can be used to examine a string. One of the most common is <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code>, which takes the pointers to two strings, dereferences them, and compares their contents. The return value for <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code> can be -1, 0, or 1, with 0 indicating the strings are identical. The -1 and 1 values are used to indicate the lexicographic <a class="footnote-reference" href="#f58" id="id3">[1]</a> ordering (i.e., how they would appear in an alphabetized list) if there is a mismatch; <code class="docutils literal notranslate"><span class="pre">strcmp</span> <span class="pre">(&quot;hello&quot;,</span> <span class="pre">&quot;goodbye&quot;)</span></code> would return the positive value to indicate that the first argument should be ordered after the second. Switching the order of the arguments would flip the result to -1. Two additional common functions are <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> and <code class="docutils literal notranslate"><span class="pre">strstr()</span></code>, which are used for searching within the contents of the string; <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> looks for a specified character in the string (passed as an int rather than a <code class="docutils literal notranslate"><span class="pre">char</span></code>), while <code class="docutils literal notranslate"><span class="pre">strstr()</span></code> looks for a substring. If the character or substring is found, these functions return a pointer to the first location; otherwise, they return <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Library.png"><img alt="Decorative C library image" src="_images/CSF-Images-Library.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">C library functions – &lt;string.h&gt;</p><hr class="mt-1" />
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">strcmp(const</span> <span class="pre">char</span> <span class="pre">*s1,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*s2);</span></code></dt>
+<dd>Compare two strings for the same content.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span> <span class="pre">strchr(const</span> <span class="pre">char</span> <span class="pre">*s,</span> <span class="pre">int</span> <span class="pre">c);</span></code></dt>
+<dd>Search for the first occurrence of a character c in a larger string s.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span> <span class="pre">strstr(const</span> <span class="pre">char</span> <span class="pre">*haystack,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*needle);</span></code></dt>
+<dd>Search for one string (needle) as a substring of another (haystack).</dd>
+</dl>
+</div>
+<p><a class="reference external" href="#cla-38">Code Listing A.38</a> demonstrates some common uses of these functions. Lines 5 and 6 specify two strings to work with. Line 9 then compares them using <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code>, implicitly relying on a convention in C that 0 indicates <em>false</em> and anything non-zero indicates <em>true</em>. Since these strings do not match, strcmp() would return 1 or -1 (1 in this particular case); C interprets this value as <em>true</em>, so the assertion is satisfied. (Note that it is a common practice to write <code class="docutils literal notranslate"><span class="pre">!strcmp(s1,</span> <span class="pre">s2)</span></code> to evaluate if the strings are identical. If they match, <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code> returns 0 (false) and the logical negation (<code class="docutils literal notranslate"><span class="pre">!</span></code>) operator negates this value to true; if they do not match, the <code class="docutils literal notranslate"><span class="pre">!</span></code> would convert the 1 or -1 returned into false.)</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-38"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.38:</span>
+<span class="cm">   Comparing strings and searching for substring/character occurrences</span>
+<span class="cm"> */</span>
+
+<span class="kt">char</span> <span class="o">*</span><span class="n">longer</span> <span class="o">=</span> <span class="s">&quot;breathe&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">shorter</span> <span class="o">=</span> <span class="s">&quot;eat&quot;</span><span class="p">;</span>
+
+<span class="cm">/* Assertion holds because they are not the same */</span>
+<span class="n">assert</span> <span class="p">(</span><span class="n">strcmp</span> <span class="p">(</span><span class="n">longer</span><span class="p">,</span> <span class="n">shorter</span><span class="p">));</span>
+
+<span class="kt">char</span> <span class="o">*</span><span class="n">substr</span> <span class="o">=</span> <span class="n">strstr</span> <span class="p">(</span><span class="n">longer</span><span class="p">,</span> <span class="n">shorter</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Substring starting at </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s"> is %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">shorter</span><span class="p">,</span> <span class="n">substr</span><span class="p">);</span>
+
+<span class="kt">size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">walker</span> <span class="o">=</span> <span class="n">strchr</span> <span class="p">(</span><span class="n">longer</span><span class="p">,</span> <span class="sc">&#39;e&#39;</span><span class="p">);</span>
+<span class="k">while</span> <span class="p">(</span><span class="n">walker</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">count</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">walker</span> <span class="o">=</span> <span class="n">strchr</span> <span class="p">(</span><span class="n">walker</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="sc">&#39;e&#39;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;There are %zd occurrences of &#39;e&#39; in %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">longer</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Line 11 checks if the string “eat” occurs anywhere as a substring in the longer string “breathe”.
+Since it does, <code class="docutils literal notranslate"><span class="pre">strstr()</span></code> would return the pointer of the first <code class="docutils literal notranslate"><span class="pre">'e'</span></code> in the string. Note that
+<code class="docutils literal notranslate"><span class="pre">strstr()</span></code> does not alter the original string in any way; it simply returns a pointer to the
+middle of the existing string. Because of this, line 12 will print the substr variable as the string
+<code class="docutils literal notranslate"><span class="pre">&quot;eathe&quot;</span></code>, as <code class="docutils literal notranslate"><span class="pre">printf()</span></code> processes <code class="docutils literal notranslate"><span class="pre">%s</span></code> by traversing through the characters until the null
+byte is encountered. That is, if a <code class="docutils literal notranslate"><span class="pre">strstr()</span></code> finds a substring anywhere, printing that substring
+will print the contents from the first occurrence of the substring all the way to the end of the
+original string.</p>
+<p>Lines 14 – 20 use <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> in a loop to count the number of occurrences of a particular
+character, <code class="docutils literal notranslate"><span class="pre">'e'</span></code> in this case. Line 15 initializes the <code class="docutils literal notranslate"><span class="pre">walker</span></code> variable to point to the first
+<code class="docutils literal notranslate"><span class="pre">'e'</span></code>, the third byte of the string. If line 15 had search for ‘q’ instead, <code class="docutils literal notranslate"><span class="pre">walker</span></code> would be
+initialized to NULL. Within each iteration of the <code class="docutils literal notranslate"><span class="pre">while</span></code>-loop, line 19 finds the next location of
+an <code class="docutils literal notranslate"><span class="pre">'e'</span></code> (if one exists). In this case, the call to <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> indicates that it needs to start
+looking at <code class="docutils literal notranslate"><span class="pre">walker+1</span></code>, the first byte after an ‘e’ that has already been found. (Calling
+<code class="docutils literal notranslate"><span class="pre">strchr(walker,</span> <span class="pre">'e');</span></code> on line 19 would create an infinite loop, since it would repeatedly find
+the same <code class="docutils literal notranslate"><span class="pre">'e'</span></code>!) Assuming the original string longer is null-terminated (as it is), the
+<code class="docutils literal notranslate"><span class="pre">while</span></code>-loop is guaranteed to terminate as written. The function <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> will stop and return
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code> once it encounters the null byte. Even if <code class="docutils literal notranslate"><span class="pre">walker</span></code> ends up pointing to the last character
+of the string (as it does in this case) <code class="docutils literal notranslate"><span class="pre">walker+1</span></code> can never accidentally skip over the null
+terminator, because <code class="docutils literal notranslate"><span class="pre">walker</span></code> is always set to point to an <code class="docutils literal notranslate"><span class="pre">'e'</span></code>.</p>
+<div class="topic border border-dark rounded-lg alert-danger px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-BugWarning.png"><img alt="Decorative bug warning" src="_images/CSF-Images-BugWarning.png" style="width: 90%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Bug Warning</p><hr class="mt-1" />
+<p>Many languages have built-in string types that allow easy comparison with the standard equality
+operator. Again, C is not one of those languages. The only safe way to check if two strings have
+the same contents is to use <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code>. Using other comparisons, such as the <code class="docutils literal notranslate"><span class="pre">==</span></code> operator, can
+lead to erroneous results if not interpreted correctly. With primitives like <code class="docutils literal notranslate"><span class="pre">int</span></code> and <code class="docutils literal notranslate"><span class="pre">char</span></code>,
+this operator compares the values and returns true if the values match. The same is true of strings
+(and pointers in general), but this fact does not match our intuitions. Specifically, the value of
+a string (<code class="docutils literal notranslate"><span class="pre">char*</span></code>) variable or any other pointer is <em>the address being pointed to</em>. That is, the
+<code class="docutils literal notranslate"><span class="pre">==</span></code> operator checks if the pointers are pointing to the same location, not that the strings
+themselves match. The following example illustrates key features of this distinction:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">char</span> <span class="o">*</span><span class="n">first</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">second</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="n">third</span><span class="p">[]</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="n">fourth</span><span class="p">[]</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="p">;</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Comparing first and second:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Same contents? %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="o">!</span> <span class="n">strcmp</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">)</span> <span class="o">?</span> <span class="s">&quot;yes&quot;</span> <span class="o">:</span> <span class="s">&quot;no&quot;</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Same string? %s</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">first</span> <span class="o">==</span> <span class="n">second</span> <span class="o">?</span> <span class="s">&quot;yes&quot;</span> <span class="o">:</span> <span class="s">&quot;no&quot;</span><span class="p">));</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Comparing first and third:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Same contents? %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="o">!</span> <span class="n">strcmp</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">third</span><span class="p">)</span> <span class="o">?</span> <span class="s">&quot;yes&quot;</span> <span class="o">:</span> <span class="s">&quot;no&quot;</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Same string? %s</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">first</span> <span class="o">==</span> <span class="n">third</span> <span class="o">?</span> <span class="s">&quot;yes&quot;</span> <span class="o">:</span> <span class="s">&quot;no&quot;</span><span class="p">));</span>
+
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Comparing third and fourth:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Same contents? %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="o">!</span> <span class="n">strcmp</span> <span class="p">(</span><span class="n">third</span><span class="p">,</span> <span class="n">fourth</span><span class="p">)</span> <span class="o">?</span> <span class="s">&quot;yes&quot;</span> <span class="o">:</span> <span class="s">&quot;no&quot;</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Same string? %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">third</span> <span class="o">==</span> <span class="n">fourth</span> <span class="o">?</span> <span class="s">&quot;yes&quot;</span> <span class="o">:</span> <span class="s">&quot;no&quot;</span><span class="p">));</span>
+</pre></div>
+</td></tr></table></div>
+<p>Lines 1 – 4 declare the string <code class="docutils literal notranslate"><span class="pre">&quot;hello</span></code>” four times, twice with a <code class="docutils literal notranslate"><span class="pre">char*</span></code> and twice with a
+<code class="docutils literal notranslate"><span class="pre">char</span></code> array. These declarations influence the equality checks that follow. In all three cases,
+the <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code> function will return 0 to indicate that they match; this should not be surprising
+since they are all initialized with the same string. With the equality check, it should not be
+surprising that the equality check on line 12 returns false. Recall that that <code class="docutils literal notranslate"><span class="pre">char*</span></code>
+initialization style puts the contents of the string in <code class="docutils literal notranslate"><span class="pre">.rodata</span></code>, whereas the char array style
+places the contents on the stack. In other words, second and third are pointing to different memory
+segments.</p>
+<p>The equality checks on lines 8 and 16 are somewhat less predictable initially. Line 8 returns true,
+indicating that the <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">second</span></code> pointers are pointing to the same place, despite the
+fact that they are both initialized with what appears to be a separate copy of the string. In fact,
+the compiler determines that the strings are the same, which makes it redundant to store two copies
+in <code class="docutils literal notranslate"><span class="pre">.rodata</span></code>; by definition, the strings in <code class="docutils literal notranslate"><span class="pre">.rodata</span></code> cannot change, so one shared copy is
+sufficient. Line 16, on the other hand, returns false. The array declaration style must create two
+distinct instances, because each one can be modified independently of the other; it does not matter
+that the initial contents are the same. In fact, the compiler produces a warning on this line to
+indicate that such array comparisons always evaluate to false.</p>
+</div>
+<p>Another common task with strings is to determine if the characters fit into particular classes, such
+as numeric, alphanumeric, whitespace, printable, upper- or lower-case, etc. The functions defined in
+the <code class="docutils literal notranslate"><span class="pre">ctype.h</span></code> file provide these tests without requiring the programmer to recreate the
+pattern-matching required. <a class="reference external" href="#cla-39">Code Listing A.39</a> illustrates how these class tests could be
+used to validate the strength <a class="footnote-reference" href="#f59" id="id4">[2]</a> of a password. Line 9 performs a standard safety check.
+Functions that take a pointer as input—particular from user-supplied input—need to check explicitly
+for <code class="docutils literal notranslate"><span class="pre">NULL</span></code> arguments. Line 12 then throws out passwords that are shorter than 16 characters in length.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-39"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.39:</span>
+<span class="cm">   Using ctype.h tests to determine if a password uses multiple classes</span>
+<span class="cm"> */</span>
+
+<span class="kt">bool</span>
+<span class="nf">is_strong</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">password</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* Safety check: Don&#39;t accept a NULL pointer */</span>
+  <span class="n">assert</span> <span class="p">(</span><span class="n">password</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+
+  <span class="cm">/* Short passwords are bad */</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">strlen</span> <span class="p">(</span><span class="n">password</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="kt">char</span> <span class="o">*</span><span class="n">walker</span> <span class="o">=</span> <span class="n">password</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">digit</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">lower</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">punct</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="k">while</span> <span class="p">(</span><span class="o">*</span><span class="n">walker</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">digit</span> <span class="o">|=</span> <span class="n">isdigit</span> <span class="p">(</span><span class="o">*</span><span class="n">walker</span><span class="p">);</span>
+      <span class="n">lower</span> <span class="o">|=</span> <span class="n">islower</span> <span class="p">(</span><span class="o">*</span><span class="n">walker</span><span class="p">);</span>
+      <span class="n">upper</span> <span class="o">|=</span> <span class="n">isupper</span> <span class="p">(</span><span class="o">*</span><span class="n">walker</span><span class="p">);</span>
+      <span class="n">punct</span> <span class="o">|=</span> <span class="n">ispunct</span> <span class="p">(</span><span class="o">*</span><span class="n">walker</span><span class="o">++</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="cm">/* Return true only if all are true */</span>
+  <span class="k">return</span> <span class="n">digit</span> <span class="o">&amp;&amp;</span> <span class="n">lower</span> <span class="o">&amp;&amp;</span> <span class="n">upper</span> <span class="o">&amp;&amp;</span> <span class="n">punct</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Lines 15 – 23 perform the bulk of the checking. The four <code class="docutils literal notranslate"><span class="pre">bool</span></code> variables are all initialized to
+false, indicating that we have not yet encountered a digit (<code class="docutils literal notranslate"><span class="pre">'0'</span></code> – <code class="docutils literal notranslate"><span class="pre">'9'</span></code>), lower-case letter
+(<code class="docutils literal notranslate"><span class="pre">'a'</span></code> – <code class="docutils literal notranslate"><span class="pre">'z'</span></code>), upper-case letter (<code class="docutils literal notranslate"><span class="pre">'A'</span></code> – <code class="docutils literal notranslate"><span class="pre">'Z'</span></code>), or a punctuation mark (see
+<code class="docutils literal notranslate"><span class="pre">ispunct(3)</span></code> for the full list). The <code class="docutils literal notranslate"><span class="pre">walker</span></code> variable is set to traverse through each byte of
+the string until the null byte is encountered (observe that line 22 advances <code class="docutils literal notranslate"><span class="pre">walker</span></code> after all
+checks have been done for one character). Within the <code class="docutils literal notranslate"><span class="pre">while</span></code>-loop, each bool variable is bit-wise
+<code class="docutils literal notranslate"><span class="pre">OR</span></code>ed (<code class="docutils literal notranslate"><span class="pre">|</span></code>) with the result of applying the <code class="docutils literal notranslate"><span class="pre">isX</span></code> functions to the current character
+<code class="docutils literal notranslate"><span class="pre">*walker</span></code>. The first time that a character passes one of the tests (e.g., when <code class="docutils literal notranslate"><span class="pre">*walker</span></code> points
+to <code class="docutils literal notranslate"><span class="pre">'Z'</span></code> and <code class="docutils literal notranslate"><span class="pre">isupper(*walker)</span></code> is called), the corresponding bool variable will be set to 1
+(true). From then on, that variable can never become false, because applying bit-wise OR of 1 with
+any value will always produce a non-zero result. Consequently, line 25 will return true the password
+contains at least one character from each of the four classes.</p>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Library.png"><img alt="Decorative C library image" src="_images/CSF-Images-Library.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">C library functions – &lt;ctype.h&gt;</p><hr class="mt-1" />
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">isalnum(int</span> <span class="pre">c);</span></code></dt>
+<dd>Determines if c is alphanumeric.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">isalpha(int</span> <span class="pre">c);</span></code></dt>
+<dd>Determines if c is alphabetical letter.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">isdigit(int</span> <span class="pre">c);</span></code></dt>
+<dd>Determines if c is a numeric digit.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">isspace(int</span> <span class="pre">c);</span></code></dt>
+<dd>Determines if c is a whitespace character (including tab, newline, etc.).</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">islower(int</span> <span class="pre">c);</span></code></dt>
+<dd>Determines if c is lower-case alphabetical character.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">isupper(int</span> <span class="pre">c);</span></code></dt>
+<dd>Determines if c is upper-case alphabetical character.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">ispunct(int</span> <span class="pre">c);</span></code></dt>
+<dd>Determines if c is a punctuation mark.</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="common-string-manipulations">
+<h2>10.7.2. Common String Manipulations<a class="headerlink" href="#common-string-manipulations" title="Permalink to this headline">¶</a></h2>
+<p>Most modern programming languages provide a simple mechanism for a very common task: merging
+strings. Some languages use the <code class="docutils literal notranslate"><span class="pre">+</span></code> operator, such as <code class="docutils literal notranslate"><span class="pre">string1</span> <span class="pre">+</span> <span class="pre">string2</span></code> to concatenate the two
+strings; others use a <code class="docutils literal notranslate"><span class="pre">.</span></code> operator instead. Unfortunately, C is not such a language. There are
+various functions that can be used for this purpose, with <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> and <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> being two
+of the first encountered. Both of these functions copy the contents of one string (<code class="docutils literal notranslate"><span class="pre">s2</span></code>, passed as
+the second argument) into a portion of memory identified by the first argument (<code class="docutils literal notranslate"><span class="pre">s1</span></code>). The key
+difference between the two is that <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> will copy the bytes starting at the exact location
+that s1 points to; <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> appends the strings by copying the bytes starting at the first null
+byte at or after <code class="docutils literal notranslate"><span class="pre">s2</span></code>. In other words, <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> replaces the contents of the first string,
+whereas <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> concatenates the two.</p>
+<p>Unlike their unsafe cousins <code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> and <code class="docutils literal notranslate"><span class="pre">strcat()</span></code> (which should <strong>NEVER</strong> be used),
+<code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> and <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> take a third argument that specifies a maximum number of bytes to
+copy. If the length of <code class="docutils literal notranslate"><span class="pre">s2</span></code> is less than <code class="docutils literal notranslate"><span class="pre">n</span></code>, then the function will stop before processing
+<code class="docutils literal notranslate"><span class="pre">n</span></code> bytes. The <code class="docutils literal notranslate"><span class="pre">memcpy()</span></code> function shown below behaves similarly to <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code>, except that
+it ignores the null byte; that is, <code class="docutils literal notranslate"><span class="pre">memcpy()</span></code> is used to copy an arbitrary memory buffer from one
+location to another, regardless of whether that buffer contains a string. In that regard,
+<code class="docutils literal notranslate"><span class="pre">memcpy()</span></code> will always copy exactly n bytes, unless some unusual circumstance occurs (such as the
+<code class="docutils literal notranslate"><span class="pre">dst</span></code> and <code class="docutils literal notranslate"><span class="pre">src</span></code> buffers overlapping, which is undefined behavior in the C specification).</p>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Library.png"><img alt="Decorative C library image" src="_images/CSF-Images-Library.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">C library functions – &lt;string.h&gt;</p><hr class="mt-1" />
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span> <span class="pre">strncpy(char</span> <span class="pre">*s1,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*s2,</span> <span class="pre">size_t</span> <span class="pre">n);</span></code></dt>
+<dd>Copy string s2 into the buffer s1; stops after copying n bytes or at the first ‘0’.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span> <span class="pre">strncat(char</span> <span class="pre">*s1,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*s2,</span> <span class="pre">size_t</span> <span class="pre">n);</span></code></dt>
+<dd>Appends string s2 after the string s1; stops after copying n bytes or at the first ‘0’.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span> <span class="pre">memcpy(void</span> <span class="pre">*dst,</span> <span class="pre">const</span> <span class="pre">void</span> <span class="pre">*src,</span> <span class="pre">size_t</span> <span class="pre">n);</span></code></dt>
+<dd>Copy n bytes of memory from src to dst; does not stop at ‘0’.</dd>
+</dl>
+</div>
+<p>Although it is certainly fair to refer to <code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> or <code class="docutils literal notranslate"><span class="pre">strcat()</span></code> as an unsafe version of
+<code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> or <code class="docutils literal notranslate"><span class="pre">strncat()</span></code>, it would be a mistake to consider the latter two functions truly
+safe. One key aspect of this is whether or not these functions guarantee that the result is null
+terminated. <a class="reference external" href="#cla-40">Code Listing A.40</a> demonstrate two examples of this problem. The <code class="docutils literal notranslate"><span class="pre">n</span></code>
+argument on line 10 ensures that only the <code class="docutils literal notranslate"><span class="pre">'h'</span></code> and <code class="docutils literal notranslate"><span class="pre">'e'</span></code> characters get copied into the buffer
+array. That is, the <code class="docutils literal notranslate"><span class="pre">n</span></code> argument for <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> places a maximum number of bytes copied, and
+the function does not guarantee that one of these is a null byte. Line 11, then, is likely to print
+additional characters after the string <code class="docutils literal notranslate"><span class="pre">&quot;he&quot;</span></code>, because there is no null byte in buffer. As such,
+the <code class="docutils literal notranslate"><span class="pre">%s</span></code> causes <code class="docutils literal notranslate"><span class="pre">printf()</span></code> to continue traversing through memory until a null byte
+is encountered.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-40"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.40:</span>
+<span class="cm">   strncpy() and strncat() do not agree on null-termination of strings</span>
+<span class="cm"> */</span>
+
+<span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="n">strncpy</span> <span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;buffer: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">buffer</span><span class="p">);</span>
+
+<span class="kt">char</span> <span class="n">trouble</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span>
+<span class="n">strncpy</span> <span class="p">(</span><span class="n">trouble</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+<span class="n">strncat</span> <span class="p">(</span><span class="n">trouble</span><span class="p">,</span> <span class="s">&quot; world&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;trouble: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">trouble</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<div class="topic border border-dark rounded-lg alert-danger px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-BugWarning.png"><img alt="Decorative bug warning" src="_images/CSF-Images-BugWarning.png" style="width: 90%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Bug Warning</p><hr class="mt-1" />
+<p>The <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> and <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> functions are a frequent source for error. As describe above,
+they differ on their interpretation of the <code class="docutils literal notranslate"><span class="pre">n</span></code> parameter and whether or not null-termination is
+guaranteed (yes for <code class="docutils literal notranslate"><span class="pre">strncat()</span></code>, no for <code class="docutils literal notranslate"><span class="pre">strncpy())</span></code>. Besides the confusion around these
+issues, they still leave plenty of room for errors on the part of the programmer. One common
+mistake is to switch the order of the first two arguments, mistaking the source and the destination
+of the copy operation. Another common mistake with these functions can be illustrated in the
+following line of code:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-2 mb-3 notranslate"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="n">strncpy</span> <span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">strlen</span> <span class="p">(</span><span class="n">source</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>This line of code, in essence, re-creates the functionality of the banned <code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> function.
+When <code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> runs, it will only stop when it encounters a null byte in source; in the process,
+it has copied <code class="docutils literal notranslate"><span class="pre">strlen(source)</span></code> bytes over to the destination. By making the n parameter be the
+same as the number of bytes in the string, this line of code is setting a redundant maximum length
+check (<code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> would already stop after <code class="docutils literal notranslate"><span class="pre">strlen(source)</span></code> of <code class="docutils literal notranslate"><span class="pre">data</span></code>). <strong>The third parameter
+must always be based on how much space is available in the destination, never the source</strong>.</p>
+<p>Another common mistake that occurs with these functions is due to confusion regarding the
+<code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> operator as discussed previously. Consider the following example:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">char</span> <span class="o">*</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">calloc</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">char</span><span class="p">));</span>
+<span class="n">strncpy</span> <span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="s">&quot;This is a string&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">buffer</span><span class="p">));</span>
+</pre></div>
+</td></tr></table></div>
+<p>The first line of this example creates a dynamically allocated buffer of 100 bytes of space. Since
+it uses <code class="docutils literal notranslate"><span class="pre">calloc()</span></code>, all of the bytes are set to null bytes (0 = <code class="docutils literal notranslate"><span class="pre">'\0'</span></code>). On the second line,
+the source argument string is 16 characters in length; clearly the buffer has sufficient space for
+the entire string. The problem with this line of code is that only the bytes <code class="docutils literal notranslate"><span class="pre">&quot;This</span> <span class="pre">is</span> <span class="pre">&quot;</span></code> will be
+copied over, due to the use of <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code>. As described previously, sizeof() can never check how
+much space a pointer is pointing to. Instead, <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> returns the amount of space required for
+the variable itself. Since <code class="docutils literal notranslate"><span class="pre">buffer</span></code> is a <code class="docutils literal notranslate"><span class="pre">char*</span></code> (i.e, it is a pointer), its size is the size
+of an address: 8 bytes. It does not matter that <code class="docutils literal notranslate"><span class="pre">buffer</span></code> is pointing to 100 bytes allocated on
+the heap. Based on the first line of code (with a hard-coded size of 100), the last argument to
+<code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> would need to be the hard-coded value 99 (keeping the $100^{th}$ byte as 0 to guarantee a
+null-terminated string).</p>
+<p>A third common mistake occurs when the programmer forgets about the implications of memory segment
+permissions. In the following example, <code class="docutils literal notranslate"><span class="pre">message</span></code> is declared as a <code class="docutils literal notranslate"><span class="pre">char*</span></code> that points to the
+hard-coded string <code class="docutils literal notranslate"><span class="pre">&quot;Hello,</span> <span class="pre">&quot;</span></code>, which resides in the read-only global data segment (<code class="docutils literal notranslate"><span class="pre">.rodata</span></code>).
+Line 2, then, is an attempt to write into read-only memory. The result would be a segmentation
+fault or an abort trap, depending on the architecture.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">char</span> <span class="o">*</span><span class="n">message</span> <span class="o">=</span> <span class="s">&quot;Hello, &quot;</span><span class="p">;</span>
+<span class="n">strncat</span> <span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="mi">20</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<p>While <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> and <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> focus on building or merging strings, another common task is
+to split a string into smaller parts, a procedure known as <em>tokenizing</em>. C provides two
+functions, <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> and <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code>, for this purpose. In both cases, when the function is
+first called, the <code class="docutils literal notranslate"><span class="pre">str</span></code> parameter points to the string to tokenize; on subsequent calls, <code class="docutils literal notranslate"><span class="pre">str</span></code>
+is set to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> to indicate that the function is continuing to process the previous string. The
+sep parameter is a pointer to a string of separator characters; whenever one or more of these
+characters is encountered in a row, <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> or <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> would return a pointer to the
+token ending at that character. The difference between the two functions is that <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> is
+<a class="reference internal" href="Glossary.html#term-reentrant"><span class="xref std std-term">reentrant</span></a>, while <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> is not. (Reentrancy is discussed in Chapter 7.) In short,
+<code class="docutils literal notranslate"><span class="pre">strtok()</span></code> uses a static variable to keep track of where to continue within the string. This
+approach fails when there are multiple threads calling <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> on distinct strings; the threads
+might accidentally receive each other’s tokens. If there are multiple threads in execution, the
+<code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> version is needed to avoid this dilemma; the third parameter, <code class="docutils literal notranslate"><span class="pre">lasts</span></code>, keeps track
+of the tokenization of the string, thus eliminating the race conditions that can occur with static variables.</p>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Library.png"><img alt="Decorative C library image" src="_images/CSF-Images-Library.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">C library functions – &lt;string.h&gt;</p><hr class="mt-1" />
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span> <span class="pre">strtok(char</span> <span class="pre">*str,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*sep);</span></code></dt>
+<dd>Split the string <code class="docutils literal notranslate"><span class="pre">str</span></code> at an occurrence of the separator <code class="docutils literal notranslate"><span class="pre">sep</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span> <span class="pre">strtok_r(char</span> <span class="pre">*str,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*sep,</span> <span class="pre">char</span> <span class="pre">**lasts);</span></code></dt>
+<dd>Thread-safe version of <code class="docutils literal notranslate"><span class="pre">strtok()</span></code>; sets lasts to the beginning of the next token.</dd>
+</dl>
+</div>
+<p>As an example of tokenization, consider a comma-separated value (CSV) file, a common format for
+sharing collections of data. Each line in a CSV file consists of a number of data fields with a
+comma to separate them. As an example, consider a CSV file of holidays for the year 2020. One line
+of the file might look as follows:</p>
+<div class="highlight-none border border-dark rounded-lg bg-light px-2 mb-3 notranslate"><div class="highlight bg-light"><pre class="mb-0"><span></span>Wed,Jan,01,2020,New Year&#39;s Day
+</pre></div>
+</div>
+<p>Once the file contents have been read into memory, the lines might be tokenized to retrieve the
+individual fields of the line. <a class="reference external" href="#cla-41">Code Listing A.41</a> splits this line one token at a time,
+storing the fields in the fields of a <code class="docutils literal notranslate"><span class="pre">struct</span></code> declared as the <code class="docutils literal notranslate"><span class="pre">holiday_t</span></code> type.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-41"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.41:</span>
+<span class="cm">   Using strtok_r() to split a CSV file line</span>
+<span class="cm"> */</span>
+
+<span class="cm">/* Assume line contains &quot;Wed,Jan,01,2020,New Year&#39;s&quot; */</span>
+<span class="n">holiday_t</span> <span class="n">nyd</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">save</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="n">nyd</span><span class="p">.</span><span class="n">wkd</span> <span class="o">=</span> <span class="n">strtok_r</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">save</span><span class="p">);</span> <span class="c1">// set weekday to &quot;Wed&quot;</span>
+<span class="n">nyd</span><span class="p">.</span><span class="n">mon</span> <span class="o">=</span> <span class="n">strtok_r</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">save</span><span class="p">);</span> <span class="c1">// set month to &quot;Jan&quot;</span>
+<span class="n">nyd</span><span class="p">.</span><span class="n">day</span> <span class="o">=</span> <span class="n">strtok_r</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">save</span><span class="p">);</span> <span class="c1">// set day to &quot;01&quot;</span>
+<span class="n">nyd</span><span class="p">.</span><span class="n">yer</span> <span class="o">=</span> <span class="n">strtok_r</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">save</span><span class="p">);</span> <span class="c1">// set year to &quot;2020&quot;</span>
+<span class="n">nyd</span><span class="p">.</span><span class="n">nam</span> <span class="o">=</span> <span class="n">strtok_r</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">save</span><span class="p">);</span> <span class="c1">// set name &quot;New Year&#39;s&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>In each of the lines 8 – 12, the call-by-reference parameter <code class="docutils literal notranslate"><span class="pre">&amp;save</span></code> changes the save pointer to
+keep track of the continuation point that immediately follows the separator instance. For instance,
+line 8 sets save to point to the <code class="docutils literal notranslate"><span class="pre">'J'</span></code> in <code class="docutils literal notranslate"><span class="pre">&quot;Jan&quot;</span></code> and returns a pointer to the string <code class="docutils literal notranslate"><span class="pre">&quot;Wed&quot;</span></code>.
+When the first parameter to <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> is <code class="docutils literal notranslate"><span class="pre">NULL,</span></code> this continuation point determines where the
+function will look for the next delimiter. On line 9, then, <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> starts looking at the ‘J’
+and finds the comma just after <code class="docutils literal notranslate"><span class="pre">&quot;Jan&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> then updates save to point to the first ‘0’
+and returns the token <code class="docutils literal notranslate"><span class="pre">&quot;Jan&quot;</span></code>.</p>
+<p>There are subtle aspects to the behavior of <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> and <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> that require
+consideration. First, these functions do not return copies of the tokens; they <em>modify the original
+string</em> and return a pointer into it. Specifically, the first occurrence of any of the characters in
+the separator string <code class="docutils literal notranslate"><span class="pre">sep</span></code> is replaced with the null byte. <a class="reference external" href="#tblA-6">Table A.6</a> illustrates two
+snapshots of the string pointed to by line in <a class="reference external" href="#cla-41">Code Listing A.41</a>, both the original
+version and after two calls to <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code>. After two calls, the first two commas in the line
+have been overwritten with a null byte. Because of this modification, the pointer that is returned
+is a complete string. The first call to <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> returns a pointer to the <code class="docutils literal notranslate"><span class="pre">'W'</span></code> at the
+beginning of the line, but the token returned is the string <code class="docutils literal notranslate"><span class="pre">&quot;Wed&quot;</span></code>. The fact that the original
+string gets modified means that <strong>string constants cannot be tokenized</strong>. Since string constants are
+stored in <code class="docutils literal notranslate"><span class="pre">.rodata</span></code>, tokenizing it would require writing a null byte into read-only memory.</p>
+<center>
+<table class="table table-bordered">
+  <thead class="jmu-dark-purple-bg text-light">
+    <tr>
+      <th class="py-0 center" colspan="27">Original string contents:</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="p-0 center" width="3.7%"><code>W</code></td>
+      <td class="p-0 center" width="3.7%"><code>e</code></td>
+      <td class="p-0 center" width="3.7%"><code>d</code></td>
+      <td class="p-0 center" width="3.8%"><code>,</code></td>
+      <td class="p-0 center" width="3.7%"><code>J</code></td>
+      <td class="p-0 center" width="3.7%"><code>a</code></td>
+      <td class="p-0 center" width="3.7%"><code>n</code></td>
+      <td class="p-0 center" width="3.8%"><code>,</code></td>
+      <td class="p-0 center" width="3.7%"><code>0</code></td>
+      <td class="p-0 center" width="3.7%"><code>1</code></td>
+      <td class="p-0 center" width="3.7%"><code>,</code></td>
+      <td class="p-0 center" width="3.7%"><code>2</code></td>
+      <td class="p-0 center" width="3.7%"><code>0</code></td>
+      <td class="p-0 center" width="3.7%"><code>2</code></td>
+      <td class="p-0 center" width="3.7%"><code>0</code></td>
+      <td class="p-0 center" width="3.7%"><code>,</code></td>
+      <td class="p-0 center" width="3.7%"><code>N</code></td>
+      <td class="p-0 center" width="3.7%"><code>e</code></td>
+      <td class="p-0 center" width="3.7%"><code>w</code></td>
+      <td class="p-0 center" width="3.7%"><code>&nbsp;</code></td>
+      <td class="p-0 center" width="3.7%"><code>Y</code></td>
+      <td class="p-0 center" width="3.7%"><code>e</code></td>
+      <td class="p-0 center" width="3.7%"><code>a</code></td>
+      <td class="p-0 center" width="3.7%"><code>r</code></td>
+      <td class="p-0 center" width="3.7%"><code>'</code></td>
+      <td class="p-0 center" width="3.7%"><code>s</code></td>
+      <td class="p-0 center" width="3.8%"><code>\0</code></td>
+    </tr>
+  </tbody>
+</table>
+<table class="table table-bordered">
+  <thead class="jmu-dark-purple-bg text-light">
+    <tr>
+      <th class="py-0 center" colspan="27">After line 5 of <a href="#cla-41">Code Listing 41</a>:</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="p-0 center" width="3.7%"><code>W</code></td>
+      <td class="p-0 center" width="3.7%"><code>e</code></td>
+      <td class="p-0 center" width="3.7%"><code>d</code></td>
+      <td class="p-0 center" width="3.8%"><code>\0</code></td>
+      <td class="p-0 center" width="3.7%"><code>J</code></td>
+      <td class="p-0 center" width="3.7%"><code>a</code></td>
+      <td class="p-0 center" width="3.7%"><code>n</code></td>
+      <td class="p-0 center" width="3.8%"><code>\0</code></td>
+      <td class="p-0 center" width="3.7%"><code>0</code></td>
+      <td class="p-0 center" width="3.7%"><code>1</code></td>
+      <td class="p-0 center" width="3.7%"><code>,</code></td>
+      <td class="p-0 center" width="3.7%"><code>2</code></td>
+      <td class="p-0 center" width="3.7%"><code>0</code></td>
+      <td class="p-0 center" width="3.7%"><code>2</code></td>
+      <td class="p-0 center" width="3.7%"><code>0</code></td>
+      <td class="p-0 center" width="3.7%"><code>,</code></td>
+      <td class="p-0 center" width="3.7%"><code>N</code></td>
+      <td class="p-0 center" width="3.7%"><code>e</code></td>
+      <td class="p-0 center" width="3.7%"><code>w</code></td>
+      <td class="p-0 center" width="3.7%"><code>&nbsp;</code></td>
+      <td class="p-0 center" width="3.7%"><code>Y</code></td>
+      <td class="p-0 center" width="3.7%"><code>e</code></td>
+      <td class="p-0 center" width="3.7%"><code>a</code></td>
+      <td class="p-0 center" width="3.7%"><code>r</code></td>
+      <td class="p-0 center" width="3.7%"><code>'</code></td>
+      <td class="p-0 center" width="3.7%"><code>s</code></td>
+      <td class="p-0 center" width="3.8%"><code>\0</code></td>
+    </tr>
+  </tbody>
+</table>
+<p class="center">
+Table A.6: The contents of the line variable before line 4 and after line 5 of <a href="#cla-41">Code Listing A.41</a>
+</p>
+</center><p>Second, because the pointers returned are to the original string, freeing or modifying the original
+data can corrupt the tokens. In the CSV example above, we assumed that the entire file contents were
+read into memory. What if this were not the case? Instead, the program reads a line of the file into
+memory at a time, repeatedly overwriting the buffer variable <code class="docutils literal notranslate"><span class="pre">line</span></code>. This approach would allow the
+first line to be tokenized successfully, and the fields of the <code class="docutils literal notranslate"><span class="pre">holiday_t</span></code> <code class="docutils literal notranslate"><span class="pre">struct</span></code> would be
+pointing to their tokens. But the next line of the file would get read into this exact same memory.
+As such the fields of the <code class="docutils literal notranslate"><span class="pre">holiday_t</span></code> would now be pointing to characters in the second line of
+data, not the first. On the other hand, perhaps the <code class="docutils literal notranslate"><span class="pre">line</span></code> variable points to a dynamically
+allocated buffer that is created anew for each line of the file. In this case, the <code class="docutils literal notranslate"><span class="pre">holiday_t</span></code>
+fields could be corrupted if <code class="docutils literal notranslate"><span class="pre">line</span></code> is freed; the fields would still be pointing to the heap where
+the contents of <code class="docutils literal notranslate"><span class="pre">line</span></code> were stored, but that part of the heap would now be invalid.</p>
+<p>Third, <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> and <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> ignore repeated instances of separators. This behavior can be
+problematic for CSV files, as fields can be blank. For example, assume that the CSV file from above
+was modified to include a location field between the year and name of the holiday. If these fields
+were missing for the New Year’s Day holiday, that line (and another) of the file might look like:</p>
+<div class="highlight-none border border-dark rounded-lg bg-light px-2 mb-3 notranslate"><div class="highlight bg-light"><pre class="mb-0"><span></span>Wed,Jan,01,2020,,New Year&#39;s Day
+Fri,Feb,14,2020,Charlottesville,Valentine&#39;s Day
+</pre></div>
+</div>
+<p>One call to <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> would get the string <code class="docutils literal notranslate"><span class="pre">&quot;2020&quot;</span></code>. The next call would then get the string
+<code class="docutils literal notranslate"><span class="pre">&quot;New</span> <span class="pre">Year's</span> <span class="pre">Day&quot;</span></code>, rather than an empty string to indicate the missing location field. There are
+times when skipping over repeated separators is advantageous (consider skipping over repeated
+whitespace in a C source code file), but there are also times where it can lead to incorrect
+results. The <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> and <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code> work well for the former cases, but other approaches
+are needed for the latter.</p>
+<p><a class="reference external" href="#cla-42">Code Listing A.42</a> demonstrates two techniques for splitting a file’s contents based on
+lines. To start, assume that the file’s contents have been read into <code class="docutils literal notranslate"><span class="pre">file_contents</span></code> and (for
+simplicity) this buffer is null-terminated. Lines 5 – 17 store copies of the lines without using
+<code class="docutils literal notranslate"><span class="pre">strtok()</span></code> or <code class="docutils literal notranslate"><span class="pre">strtok_r()</span></code>. Instead, these lines use <code class="docutils literal notranslate"><span class="pre">start_of_line</span></code> to keep track of where a
+line begins (initially, the start of the file contents). Line 6 then uses <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> to identify
+the end of the first line by looking for the <code class="docutils literal notranslate"><span class="pre">'\n'</span></code> character. Line 10 uses <code class="docutils literal notranslate"><span class="pre">strndup()</span></code> to make
+a dynamically allocated copy of the line. The semantics of <code class="docutils literal notranslate"><span class="pre">strndup()</span></code> are like strncat(); it will
+copy up to the specified number of bytes and it will add on a null terminator. Since <code class="docutils literal notranslate"><span class="pre">end_of_line</span> <span class="pre">–</span>
+<span class="pre">start_of_line</span></code> is the exactly the number of bytes in the line, line 10 makes a complete
+null-terminated copy and stores the address of this copy into an array. Line 12 then moves
+<code class="docutils literal notranslate"><span class="pre">start_of_line</span></code> just past the newline character so that it points to the beginning of the next
+line. Line 14, then, starts looking for the next <code class="docutils literal notranslate"><span class="pre">end_of_line</span></code> after that point. The additional
+copy on line 17 is necessary because the <code class="docutils literal notranslate"><span class="pre">while</span></code>-loop will terminate when there are no more
+newline characters; when this occurs, <code class="docutils literal notranslate"><span class="pre">start_of_line</span></code> is pointing to the last line (which has no
+<code class="docutils literal notranslate"><span class="pre">'\n'</span></code> after it). Line 17 can use the standard <code class="docutils literal notranslate"><span class="pre">strdup()</span></code> instead of <code class="docutils literal notranslate"><span class="pre">strndup()</span></code>, because the
+original <code class="docutils literal notranslate"><span class="pre">file_contents</span></code> are null terminated.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-42"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.42:</span>
+<span class="cm">   Tokenizing and storing file lines without and with strtok()</span>
+<span class="cm"> */</span>
+
+<span class="kt">char</span> <span class="o">*</span><span class="n">start_of_line</span> <span class="o">=</span> <span class="n">file_contents</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">end_of_line</span> <span class="o">=</span> <span class="n">strchr</span> <span class="p">(</span><span class="n">start_of_line</span><span class="p">,</span> <span class="sc">&#39;\n&#39;</span><span class="p">);</span>
+<span class="k">while</span> <span class="p">(</span><span class="n">end_of_line</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">line_copies</span><span class="p">[</span><span class="n">lineno</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span>
+      <span class="n">strndup</span> <span class="p">(</span><span class="n">start_of_line</span><span class="p">,</span> <span class="n">end_of_line</span> <span class="o">-</span> <span class="n">start_of_line</span><span class="p">);</span>
+    <span class="cm">/* Next line starts after the &#39;\n&#39; */</span>
+    <span class="n">start_of_line</span> <span class="o">=</span> <span class="n">end_of_line</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="cm">/* Find the next end of line */</span>
+    <span class="n">end_of_line</span> <span class="o">=</span> <span class="n">strchr</span> <span class="p">(</span><span class="n">start_of_line</span><span class="p">,</span> <span class="sc">&#39;\n&#39;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="cm">/* Copy the last line */</span>
+<span class="n">line_copies</span><span class="p">[</span><span class="n">lineno</span><span class="p">]</span> <span class="o">=</span> <span class="n">strdup</span> <span class="p">(</span><span class="n">start_of_line</span><span class="p">);</span>
+
+<span class="n">lineno</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">line</span> <span class="o">=</span> <span class="n">strtok</span> <span class="p">(</span><span class="n">file_contents</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="k">while</span> <span class="p">(</span><span class="n">line</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="cm">/* Dynamically allocate a copy and store the pointer */</span>
+    <span class="n">all_lines</span><span class="p">[</span><span class="n">lineno</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">strdup</span> <span class="p">(</span><span class="n">line</span><span class="p">);</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">strtok</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>When line 19 begins processing, the original <code class="docutils literal notranslate"><span class="pre">file_contents</span></code> have not been altered in any way. The
+use of <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> and <code class="docutils literal notranslate"><span class="pre">strndup()</span></code> in lines 6 – 17 do not write anything into this buffer.
+Consequently, we can begin to use <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> and start over. Through each iteration of the
+<code class="docutils literal notranslate"><span class="pre">while</span></code>-loop in lines 21 – 26, the <code class="docutils literal notranslate"><span class="pre">line</span></code> variable points to the current (null-terminated) line.
+To keep copies of the lines, again, we use <code class="docutils literal notranslate"><span class="pre">strdup()</span></code>. In practice, it does not make sense to
+perform both of these loops, since they are keeping track of the same data. The purpose of combining
+them in <a class="reference external" href="#cla-42">Code Listing A.42</a> is to show that they ultimately end up as two equivalent ways
+to accomplish the same goal; the only difference is that the <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> approach modifies the
+original file_contents, whereas the <code class="docutils literal notranslate"><span class="pre">strchr()</span></code> approach does not. The <code class="docutils literal notranslate"><span class="pre">while</span></code>-loop structure in
+lines 21 – 26 is a common approach for using <code class="docutils literal notranslate"><span class="pre">strtok()</span></code>.</p>
+</div>
+<div class="section" id="converting-between-strings-and-integers">
+<h2>10.7.3. Converting Between Strings and Integers<a class="headerlink" href="#converting-between-strings-and-integers" title="Permalink to this headline">¶</a></h2>
+<p>One final common task in relation to strings involves converting numeric values back and forth
+between representations. When reading user input or data from a file, numeric text data (<code class="docutils literal notranslate"><span class="pre">&quot;123&quot;</span></code>)
+might need to be converted to one of C’s integer primitive representations (123) for easy
+manipulation or compact storage. On the other hand, integers often need to be converted to their
+string format to append to other text data (e.g., writing the HTTP header line
+<code class="docutils literal notranslate"><span class="pre">&quot;Content-Length:</span> <span class="pre">123\r\n&quot;</span></code> when the length has been stored as a <code class="docutils literal notranslate"><span class="pre">size_t</span></code> variable). <a class="reference external" href="#cla-43">Code Listing A.43</a>
+illustrates the difference in the internal representations of 123 (as a <code class="docutils literal notranslate"><span class="pre">uint8_t</span></code>) and <code class="docutils literal notranslate"><span class="pre">&quot;123&quot;</span></code>
+(as a string).</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-43"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.43:</span>
+<span class="cm">   Printing the byte contents of an integer and string</span>
+<span class="cm"> */</span>
+
+<span class="kt">uint8_t</span> <span class="n">integer</span> <span class="o">=</span> <span class="mi">123</span><span class="p">;</span>
+<span class="kt">char</span> <span class="n">string</span><span class="p">[]</span> <span class="o">=</span> <span class="s">&quot;123&quot;</span><span class="p">;</span>
+
+<span class="kt">uint8_t</span> <span class="o">*</span><span class="n">walker</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">integer</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">integer</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="n">printf</span> <span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx8</span> <span class="s">&quot;  &quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">walker</span><span class="o">++</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="n">walker</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint8_t</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">string</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">string</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="n">printf</span> <span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx8</span> <span class="s">&quot;  &quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">walker</span><span class="o">++</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>The particular <code class="docutils literal notranslate"><span class="pre">for</span></code>-loops here might appear odd, but they are used to show that the two variables
+are being handled in the same way. Specifically, the loop on line 9 will only have one iteration,
+because integer is only one byte in size (as a <code class="docutils literal notranslate"><span class="pre">uint8_t</span></code>). At the same time, the loop on line 14
+deliberately uses <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> on a string (instead of <code class="docutils literal notranslate"><span class="pre">strlen()</span></code>), which is a common source of
+bugs; however, this approach lets us examine all four bytes in the <code class="docutils literal notranslate"><span class="pre">char</span></code> array.</p>
+<p>The first loop demonstrates that the internal representation of <code class="docutils literal notranslate"><span class="pre">integer</span></code> is the single byte
+<code class="docutils literal notranslate"><span class="pre">0x7b</span></code>. The second loop demonstrates that the representation of <code class="docutils literal notranslate"><span class="pre">string</span></code> is the four consecutive
+bytes <code class="docutils literal notranslate"><span class="pre">0x31</span></code>, <code class="docutils literal notranslate"><span class="pre">0x32</span></code>, <code class="docutils literal notranslate"><span class="pre">0x33</span></code>, and <code class="docutils literal notranslate"><span class="pre">0x00</span></code>. (Printing these four bytes were at once would
+produce the value <code class="docutils literal notranslate"><span class="pre">0x00333231</span></code> due to endianness.) The issue of conversion focuses on ways to
+translate automatically between these two byte representations, which do not appear to be similar.</p>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Library.png"><img alt="Decorative C library image" src="_images/CSF-Images-Library.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">C library functions – &lt;stdlib.h&gt;</p><hr class="mt-1" />
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">long</span> <span class="pre">strtol(const</span> <span class="pre">char</span> <span class="pre">*str,</span> <span class="pre">char</span> <span class="pre">**endptr,</span> <span class="pre">int</span> <span class="pre">base);</span></code></dt>
+<dd>Translate the numeric string str into a long representation for the provided base.</dd>
+</dl>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> function handles the conversion from integer to string. <a class="footnote-reference" href="#f60" id="id7">[3]</a> The <code class="docutils literal notranslate"><span class="pre">str</span></code>
+parameter points to a string containing the number, and the base indicates an arbitrary numeric base
+(10 for decimal, 16 for hexadecimal, or an arbitrary base such as 13 for base-13). The string can
+contain multiple numeric values separated by non-numbers (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;123</span> <span class="pre">456</span> <span class="pre">-42&quot;</span></code> for the three
+values 123, 456, and -42). When <code class="docutils literal notranslate"><span class="pre">endptr</span></code> is non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> (i.e., it is a call-by-reference value),
+it will be set to point to the first character after the current number.</p>
+<p><a class="reference external" href="#cla-44">Code Listing A.44</a> demonstrates multiple ways that <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> can be used. Line 5
+starts by creating a string <code class="docutils literal notranslate"><span class="pre">&quot;123</span> <span class="pre">-32</span> <span class="pre">alpha&quot;</span></code>. This can be broken down into the integer values 123
+and -32, but the <code class="docutils literal notranslate"><span class="pre">&quot;alpha&quot;</span></code> cannot be interpreted as an integer. Lines 9, 14, and 20 use
+<code class="docutils literal notranslate"><span class="pre">strtol()</span></code> to parse this string into these numeric components. Line 9 uses the original
+<code class="docutils literal notranslate"><span class="pre">numbers</span></code> string as the first argument, whereas lines 14 and 20 use <code class="docutils literal notranslate"><span class="pre">end</span></code> for this parameter.
+Using <code class="docutils literal notranslate"><span class="pre">end</span></code> on the subsequent calls is necessary, because <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> does not keep track of any
+prior progress; using <code class="docutils literal notranslate"><span class="pre">numbers</span></code> each time would repeatedly return the first value, 123.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-44"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.44:</span>
+<span class="cm">   Converting from string to integer representations</span>
+<span class="cm"> */</span>
+
+<span class="kt">char</span> <span class="o">*</span><span class="n">numbers</span> <span class="o">=</span> <span class="s">&quot;123 -32 alpha&quot;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+
+<span class="cm">/* strip off the 123 and make end point to &quot; -32 alpha&quot; */</span>
+<span class="kt">long</span> <span class="n">result</span> <span class="o">=</span> <span class="n">strtol</span> <span class="p">(</span><span class="n">numbers</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">end</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+<span class="n">assert</span> <span class="p">(</span><span class="n">errno</span> <span class="o">!=</span> <span class="n">EINVAL</span><span class="p">);</span> <span class="c1">// no match indicates success</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Result = %ld; end = &#39;%s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">end</span><span class="p">);</span>
+
+<span class="cm">/* continue from &quot; -32 alpha&quot; to get the -32 */</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">strtol</span> <span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">end</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+<span class="n">assert</span> <span class="p">(</span><span class="n">errno</span> <span class="o">!=</span> <span class="n">EINVAL</span><span class="p">);</span> <span class="c1">// no match indicates success</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Result = %ld; end = &#39;%s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">end</span><span class="p">);</span>
+
+<span class="cm">/* continue from &quot; alpha&quot;, which cannot be processed */</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">final</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">strtol</span> <span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">final</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+<span class="n">assert</span> <span class="p">(</span><span class="n">errno</span> <span class="o">==</span> <span class="n">EINVAL</span><span class="p">);</span> <span class="c1">// match indicates strtol() failed</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Result = %ld</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;end = &#39;%s&#39;; final = &#39;%s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">final</span><span class="p">);</span>
+<span class="n">assert</span> <span class="p">(</span><span class="n">final</span> <span class="o">==</span> <span class="n">end</span><span class="p">);</span>
+
+<span class="cm">/* use a bizarre base-11 format, ignoring endptr */</span>
+<span class="n">numbers</span> <span class="o">=</span> <span class="s">&quot;60a1&quot;</span><span class="p">;</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">strtol</span> <span class="p">(</span><span class="n">numbers</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">11</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Result = %ld</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>The <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> function provides two ways to check for errors in the processing. The first (and
+most straightforward) way is to use the errno global variable. On a failure (such as <code class="docutils literal notranslate"><span class="pre">&quot;</span> <span class="pre">alpha&quot;</span></code>),
+<code class="docutils literal notranslate"><span class="pre">strtol()</span></code> sets errno to <code class="docutils literal notranslate"><span class="pre">EINVAL</span></code>, which is a positive constant (<code class="docutils literal notranslate"><span class="pre">errno</span></code> is set to 0 on
+success). The <code class="docutils literal notranslate"><span class="pre">assert()</span></code> calls on lines 10, 15, and 21 all pass, indicating the calls to
+<code class="docutils literal notranslate"><span class="pre">strtol()</span></code> on lines 9 and 14 succeed, while line 20 fails. The other mechanism is through the
+<code class="docutils literal notranslate"><span class="pre">endptr</span></code> parameter. Line 20 uses <code class="docutils literal notranslate"><span class="pre">end</span></code> as the input, pointing to the string <code class="docutils literal notranslate"><span class="pre">&quot;</span> <span class="pre">alpha&quot;</span></code>. After
+<code class="docutils literal notranslate"><span class="pre">strtol()</span></code> runs, final is also set to this location. If the endptr ends up at the beginning of the
+string (i.e., <code class="docutils literal notranslate"><span class="pre">final</span></code> after the call matches <code class="docutils literal notranslate"><span class="pre">end</span></code>, which hasn’t changed), then <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> was
+unable to process any data successfully.</p>
+<p>Lines 27 – 29 demonstrate other features of <code class="docutils literal notranslate"><span class="pre">strtol()</span></code>. First, the endptr parameter can be (and is
+often) ignored by passing <code class="docutils literal notranslate"><span class="pre">NULL</span></code>. Even with a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> <code class="docutils literal notranslate"><span class="pre">endptr,</span></code> we could still check errno to
+determine if the conversion succeeded. Second, <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> supports generally arbitrary base values
+(2 – 36 are allowed). Conventionally, C numeric constants use <code class="docutils literal notranslate"><span class="pre">0x</span></code> as a prefix to indicate
+hexadecimal format (e.g., <code class="docutils literal notranslate"><span class="pre">0x7ff</span></code>) and a leading 0 to indicate octal (e.g., <code class="docutils literal notranslate"><span class="pre">0644</span></code>); otherwise,
+the number is interpreted as decimal. Importantly, this means that C has no convention to declare
+binary constants. The <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> function supports this by taking 2 as the base parameter.</p>
+<p>Converting values in the opposite direction, from integers to strings, is mostly intuitive, because
+it is very similar to one of the first functions novices learn in C: <code class="docutils literal notranslate"><span class="pre">printf()</span></code>. The main
+difference is that the <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> function takes two parameters before the format string to
+indicate the destination and the maximum number of bytes. (The <code class="docutils literal notranslate"><span class="pre">sprintf()</span></code> function does not take
+a maximum number of bytes, which makes this function unsafe in the same ways as <code class="docutils literal notranslate"><span class="pre">strcpy()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">strcat()</span></code>. As such, <code class="docutils literal notranslate"><span class="pre">sprintf()</span></code> should never be used.)</p>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Library.png"><img alt="Decorative C library image" src="_images/CSF-Images-Library.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">C library functions – &lt;stdlib.h&gt;</p><hr class="mt-1" />
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">snprintf(char</span> <span class="pre">*str,</span> <span class="pre">size_t</span> <span class="pre">size,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*format,</span> <span class="pre">...);</span></code></dt>
+<dd>Format a string in memory similar to printing to the screen.</dd>
+</dl>
+</div>
+<p><a class="reference external" href="#cla-45">Code Listing A.45</a> highlights the similarities between <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> and the more
+familiar <code class="docutils literal notranslate"><span class="pre">printf()</span></code>. Both functions take a format string (<code class="docutils literal notranslate"><span class="pre">&quot;%d&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;%d\n&quot;</span></code>) to indicate how
+the number should be formatted, along with the number as an additional argument. The primary
+difference is that <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> also indicates a destination to write the formatted value into
+(the <code class="docutils literal notranslate"><span class="pre">buffer</span></code>). Once the value has been written into the buffer, it can be printed (if needed)
+using the <code class="docutils literal notranslate"><span class="pre">%s</span></code> format specifier.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-45"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.45:</span>
+<span class="cm">   Converting from integer to string is similar to printing to standard I/O</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+
+<span class="cm">/* Print the number to the screen */</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">number</span><span class="p">);</span>
+
+<span class="cm">/* &quot;Print&quot; the number into the buffer */</span>
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;%d&quot;</span><span class="p">,</span> <span class="n">number</span><span class="p">);</span>
+
+<span class="cm">/* Print the string */</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">buffer</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Recall from the discussion of <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> and <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> that the two functions had different
+interpretations of the respective maximum size parameter, <code class="docutils literal notranslate"><span class="pre">n</span></code>. Specifically, <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> would
+copy a maximum of <code class="docutils literal notranslate"><span class="pre">n</span></code> bytes, potentially leaving the string un-terminated if those <code class="docutils literal notranslate"><span class="pre">n</span></code> bytes did
+not contain the null byte. In contrast, <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> would write a maximum of <code class="docutils literal notranslate"><span class="pre">n+1</span></code> bytes,
+because it always appends the null byte. The <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> function adds a third interpretation: it
+will print up to <code class="docutils literal notranslate"><span class="pre">n-1</span></code> bytes and then append the null byte. Frustrating! <a class="reference external" href="#cla-46">Code Listing A.46</a> summarizes this situation. Since both <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> and <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> guarantee null
+termination, they both end up writing a null byte; however, <code class="docutils literal notranslate"><span class="pre">strncat()</span></code> appends this after the two
+bytes <code class="docutils literal notranslate"><span class="pre">'h'</span></code> and <code class="docutils literal notranslate"><span class="pre">'e'</span></code>, whereas <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> does so after only one byte <code class="docutils literal notranslate"><span class="pre">'4'</span></code>. Unlike the
+other two, <code class="docutils literal notranslate"><span class="pre">strncpy()</span></code> does not guarantee null termination.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-46"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.46:</span>
+<span class="cm">   Converting from integer to string is similar to printing to standard I/O</span>
+<span class="cm"> */</span>
+
+<span class="n">strncat</span> <span class="p">(</span><span class="n">buffer_1</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="c1">// copies 3 bytes &#39;h&#39;, &#39;e&#39;, &#39;\0&#39;</span>
+<span class="n">strncpy</span> <span class="p">(</span><span class="n">buffer_2</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="c1">// copies 2 bytes &#39;h&#39; and &#39;e&#39;</span>
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">buffer_3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;%d&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span> <span class="c1">// copies 2 bytes &#39;4&#39; and &#39;\0&#39;</span>
+</pre></div>
+</td></tr></table></div>
+<div class="topic border border-dark rounded-lg alert-danger px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-BugWarning.png"><img alt="Decorative bug warning" src="_images/CSF-Images-BugWarning.png" style="width: 90%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Bug Warning</p><hr class="mt-1" />
+<p>The <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> function, once again, creates a very common vector for buffer overflow
+vulnerabilities. One of the challenges—and common mistakes—arises from the anticipation of what is
+a likely integer value as compared to what is a <em>possible</em> one. The buffer from <a class="reference external" href="#cla-45">Code Listing A.45</a> is not a safe size for the format specifier %d. As an int is typically four bytes, its
+string form can be as long as 12 characters in length (for example, including the negative sign and
+null byte for the <code class="docutils literal notranslate"><span class="pre">INT_MIN</span></code> constant <code class="docutils literal notranslate"><span class="pre">&quot;-2147483647&quot;)</span></code>. As such, the buffer should generally be
+larger than required. One simple way to do this (and to ensure the bytes are all initialized to 0)
+is to use <code class="docutils literal notranslate"><span class="pre">calloc()</span></code> to allocate enough space. If needed, <code class="docutils literal notranslate"><span class="pre">realloc()</span></code> could then be used to
+shrink the buffer.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">char</span> <span class="o">*</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">calloc</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">char</span><span class="p">));</span>
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;%d&quot;</span><span class="p">,</span> <span class="mi">35</span><span class="p">);</span>
+
+<span class="cm">/* Shrink it down to size, keeping an extra byte for &#39;\0&#39; */</span>
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">realloc</span> <span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">strlen</span> <span class="p">(</span><span class="n">buffer</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<p>Since <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> takes a normal format string (which can contain a mix of string data and
+multiple format specifiers), it creates an easier mechanism to concatenate multiple values together
+into a single string. <a class="reference external" href="#cla-47">Code Listing A.47</a> demonstrates a simple example of this practice
+to build the string <code class="docutils literal notranslate"><span class="pre">&quot;5</span> <span class="pre">+</span> <span class="pre">10</span> <span class="pre">=</span> <span class="pre">15\n&quot;</span></code> using <code class="docutils literal notranslate"><span class="pre">int</span></code> variables.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-47"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0">1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.47:</span>
+<span class="cm">   Using snprintf() to build a string that mixes integer and string data</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">sum</span> <span class="o">=</span> <span class="n">calloc</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">char</span><span class="p">));</span>
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">sum</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s">&quot;%d + %d = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Chapter 4 introduces the structure of HTTP headers. These headers consist of a series of lines, each
+ending in <code class="docutils literal notranslate"><span class="pre">&quot;\r\n&quot;</span></code>. As one example, consider the following header snippet:</p>
+<div class="highlight-none border border-dark rounded-lg bg-light px-2 mb-3 notranslate"><div class="highlight bg-light"><pre class="mb-0"><span></span>HTTP/1.0 200 OK\r\n
+Content-Length: 37\r\n
+Connection: close\r\n
+Content-Type: text/html\r\n
+\r\n
+</pre></div>
+</div>
+<p>Assuming some of these fields are stored in variables, this could be constructed with a single
+<code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> call, as shown in <a class="reference external" href="#cla-48">Code Listing A.48</a>.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-48"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.48:</span>
+<span class="cm">   Building an HTTP response header with one snprintf()</span>
+<span class="cm"> */</span>
+
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">MAX_HEADER_LENGTH</span><span class="p">,</span>
+          <span class="s">&quot;HTTP/%d.%d %d %s</span><span class="se">\r\n</span><span class="s">&quot;</span> <span class="c1">// version, code, status</span>
+          <span class="s">&quot;Content-Length: %d</span><span class="se">\r\n</span><span class="s">&quot;</span> <span class="c1">// length</span>
+          <span class="s">&quot;Connection: close</span><span class="se">\r\n</span><span class="s">&quot;</span>
+          <span class="s">&quot;Content-Type: %s</span><span class="se">\r\n\r\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="c1">// type</span>
+          <span class="n">vers_major</span><span class="p">,</span> <span class="n">vers_minor</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p><a class="reference external" href="#cla-48">Code Listing A.48</a> relies on the fact that string constants are concatenated in C. As
+such, lines 6 – 9 all build a single format string. Displaying them as separate lines in the code
+makes the organization easier to understand from the programmer’s perspective. This string could
+also be built a line at a time with repeated calls to <code class="docutils literal notranslate"><span class="pre">strncat()</span></code>, but this version simplifies the
+processing as a single function call.</p>
+<div class="topic border border-dark rounded-lg alert-danger px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-BugWarning.png"><img alt="Decorative bug warning" src="_images/CSF-Images-BugWarning.png" style="width: 90%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Bug Warning</p><hr class="mt-1" />
+<p>Another common use of <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> is to inject formatted numbers into the middle of an existing
+string. For instance, consider an event logging mechanism that uses a common reporting form for
+events. The <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> function could be used to fill these in, but requires special care as
+shown in the example below.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">char</span> <span class="n">record</span><span class="p">[]</span> <span class="o">=</span> <span class="s">&quot;Month [   ] Day [  ] Year [    ]&quot;</span><span class="p">;</span>
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">record</span> <span class="o">+</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">month</span><span class="p">);</span>  <span class="c1">// write [mon]</span>
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">record</span> <span class="o">+</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;%-2d&quot;</span><span class="p">,</span> <span class="n">day</span><span class="p">);</span> <span class="c1">// write [da]</span>
+<span class="n">snprintf</span> <span class="p">(</span><span class="n">record</span> <span class="o">+</span> <span class="mi">27</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&quot;%4d&quot;</span><span class="p">,</span> <span class="n">year</span><span class="p">);</span> <span class="c1">// write [year]</span>
+
+<span class="cm">/* Restore the ] characters that snprintf() overwrote with the</span>
+<span class="cm">   null byte */</span>
+<span class="n">record</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;]&#39;</span><span class="p">;</span>
+<span class="n">record</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;]&#39;</span><span class="p">;</span>
+<span class="n">record</span><span class="p">[</span><span class="mi">31</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;]&#39;</span><span class="p">;</span>
+</pre></div>
+</td></tr></table></div>
+<p>The problem is that <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> always null terminates what it writes. As such, if line 2 writes
+the month as <code class="docutils literal notranslate"><span class="pre">&quot;Jan&quot;</span></code>, the record variable would become the string <code class="docutils literal notranslate"><span class="pre">&quot;Month</span> <span class="pre">[Jan&quot;</span></code>. The rest of
+the string would still be there in memory, but <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> overwrite the first bracket with the
+null byte; printing the string at that point would stop there instead of showing the full record.
+Lines 8 – 10 fix this problem by restoring the brackets to their original locations, overwriting
+the null bytes that <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> had added.</p>
+<p>Also note that the original record string created three spaces between the brackets for the month,
+two for the day, and four for the year. The <code class="docutils literal notranslate"><span class="pre">size</span></code> parameter for lines 2 – 4 added one to each of
+these values (four, three, and five, respectively), because <code class="docutils literal notranslate"><span class="pre">snprintf()</span></code> includes the null byte in
+this count. Thus, writing the string <code class="docutils literal notranslate"><span class="pre">&quot;Jan&quot;</span></code> into the month field requires writing four bytes, not
+three.</p>
+</div>
+<table class="docutils footnote" frame="void" id="f58" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>The use of <em>lexicographic</em> instead of <em>alphabetic</em> is common and intentional in computing,
+as the former is more general and works with non-alphabetical characters. For instance, it does not
+make sense to characterize the <em>alphabetical</em> ordering of “15” as compared to “3” since neither
+contain letters in the alphabet. However, “15” comes before “3” in lexicographical ordering.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f59" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>Determining if a password is strong is significantly more complicated than this function,
+and this should not be used for real security purposes. For instance, the password also needs to be
+compared with common dictionary words, previous passwords, easily guessed patterns, etc. This
+example just illustrates how these character class checks can be used as part of this
+procedure.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f60" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[3]</a></td><td>C also has an older function <code class="docutils literal notranslate"><span class="pre">atoi()</span></code> for this purpose, though this function is
+deprecated and should not be used in new code. The <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> function adds explicit support for
+multiple bases, whereas atoi() handled this implicitly within the string; <code class="docutils literal notranslate"><span class="pre">strtol()</span></code> also returns
+a long rather than the int returned by <code class="docutils literal notranslate"><span class="pre">atoi()</span></code>, supporting larger values. Finally, and most
+importantly, <code class="docutils literal notranslate"><span class="pre">atoi()</span></code>’s error handling was weak, returning a 0 for bad input; as such, it was not
+possible to distinguish between <code class="docutils literal notranslate"><span class="pre">&quot;0&quot;</span></code> and truly bad input.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+    </div>
+
+  </body>
+  </html>

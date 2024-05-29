@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    
+    <link rel="stylesheet" href="_static/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+    <link rel="stylesheet" href="_static/css/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/normalize.css" type="text/css" />
+    <link rel="stylesheet" href="../../../JSAV/css/JSAV.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaMOD-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/jquery-1.11.4-smoothness-ui.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaStyle-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/csf.css" type="text/css" />
+
+    <style>
+      .underline { text-decoration: underline; }
+    </style>
+
+  </head><body>
+       
+    <div class="container">
+
+
+
+<h1>10.3. Basic Types and Pointers<a class="headerlink" href="#basic-types-and-pointers" title="Permalink to this headline">¶</a></h1>
+<p>C defines several basic integer types, as illustrated in <a class="reference external" href="#tblA-2">Table A.2</a>. For each of these types, there
+is both a signed (the default) and unsigned version (considered distinct types). <a class="footnote-reference" href="#f55" id="id1">[1]</a> (Note that
+<code class="docutils literal notranslate"><span class="pre">short</span></code>, <code class="docutils literal notranslate"><span class="pre">long</span></code>, and <code class="docutils literal notranslate"><span class="pre">long</span> <span class="pre">long</span></code> can also be called <code class="docutils literal notranslate"><span class="pre">short</span> <span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">long</span> <span class="pre">int</span></code>, and <code class="docutils literal notranslate"><span class="pre">long</span>
+<span class="pre">long</span> <span class="pre">int</span></code>, respectively.) For each type, there is a designated minimum range of values that the
+type must be capable of storing. The ranges are shown in the middle two columns. When printing a
+variable of the specified type, there are both <code class="docutils literal notranslate"><span class="pre">%d</span></code> (signed) and <code class="docutils literal notranslate"><span class="pre">%u</span></code> (unsigned) format
+specifiers with added <code class="docutils literal notranslate"><span class="pre">h</span></code> (half) or <code class="docutils literal notranslate"><span class="pre">l</span></code> (long) characters to vary the size. The char type can
+use %c to print the ASCII interpretation of the byte, whereas the <code class="docutils literal notranslate"><span class="pre">%hhd</span></code> and <code class="docutils literal notranslate"><span class="pre">%hhu</span></code> strings will
+produce the integer format.</p>
+<center>
+<div class="col-md-12">
+<table class="table table-bordered">
+  <thead class="jmu-dark-purple-bg text-light">
+    <tr>
+      <th class="py-0 center">Type</th>
+      <th class="py-0 center" width="35%">Unsigned range (minimum)</th>
+      <th class="py-0 center">Signed range (minimum)</th>
+      <th class="py-0 center" width="20%">Format strings</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="py-0 center"><code>char</code></td>
+      <td class="py-0 center">[0, 255]</td>
+      <td class="py-0 center">[-127, 127]</td>
+      <td class="py-0 center"><code>%c</code>, <code>%hhd</code>, <code>%hhu</code></td>
+    </tr>
+    <tr>
+      <td class="py-0 center"><code>short</code></td>
+      <td class="py-0 center">[0, 65535]</td>
+      <td class="py-0 center">[-32767, 32767]</td>
+      <td class="py-0 center"><code>%hd</code>, <code>%hu</code></td>
+    </tr>
+    <tr>
+      <td class="py-0 center"><code>int</code></td>
+      <td class="py-0 center">[0, 65535]</td>
+      <td class="py-0 center">[-32767, 32767]</td>
+      <td class="py-0 center"><code>%d</code>, <code>%u</code></td>
+    </tr>
+    <tr>
+      <td class="py-0 center"><code>long</code></td>
+      <td class="py-0 center">[0, 4294967295]</td>
+      <td class="py-0 center">[-2147483647, 2147483647]</td>
+      <td class="py-0 center"><code>%ld</code>, <code>%lu</code></td>
+    </tr>
+    <tr>
+      <td class="py-0 center"><code>long long</code></td>
+      <td class="py-0 center">[0, 18446744073709551615]</td>
+      <td class="py-0 center">[-9223372036854775807, 9223372036854775807]</td>
+      <td class="py-0 center"><code>%lld</code>, <code>%llu</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="col-md-12 center">
+Table A.2: C primitive integer types
+</div>
+</center>
+<br /><div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Note.png"><img alt="Decorative note icon" src="_images/CSF-Images-Note.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Note</p><hr class="mt-1" />
+<p>The basic <code class="docutils literal notranslate"><span class="pre">char</span></code> type is built on the ASCII character standard. The original version of this
+standard uses seven bits (the eighth bit was used as a parity check to detect errors), allowing for
+the representation of up to 127 unique characters (not including the reserve null byte). This
+limited size is clearly not sufficient to support international communication, which requires
+thousands of unique characters. ASCII has been succeeded by other standards, with Unicode being the
+current international standard. Unicode supports 16-bit (UTF-16) and 32-bit (UTF-32) character
+representations, exceeding the range of the <code class="docutils literal notranslate"><span class="pre">char</span></code> type. C has since introduced the <code class="docutils literal notranslate"><span class="pre">wchar_t</span></code>
+(wide character) to support these larger character representations.</p>
+</div>
+<p>There are some important points to note about the ranges shown in <a class="reference external" href="#tblA-2">Table A.2</a>. First, the
+table does not contain a typo; the <code class="docutils literal notranslate"><span class="pre">short</span></code> and <code class="docutils literal notranslate"><span class="pre">int</span></code> types are required to cover the exact same
+ranges. These ranges can be represented in 16 bits for either type. However, in a typical modern
+system, a <code class="docutils literal notranslate"><span class="pre">short</span></code> is a 16-bit (2 byte) variable, whereas an <code class="docutils literal notranslate"><span class="pre">int</span></code> is 32-bit (4 bytes). To add to
+the confusion, the ranges required for long can be represented in 32 bits, but a <code class="docutils literal notranslate"><span class="pre">long</span></code> is
+typically 64-bit (8 bytes). And finally, the range for <code class="docutils literal notranslate"><span class="pre">long</span> <span class="pre">long</span></code> can be represented in 64 bits,
+which is the typical size (8 bytes) for this type. In other words, <code class="docutils literal notranslate"><span class="pre">short</span></code> and <code class="docutils literal notranslate"><span class="pre">int</span></code> variables
+are required to represent the same range of values, but they are typically different sizes; on the
+other hand, <code class="docutils literal notranslate"><span class="pre">long</span></code> and <code class="docutils literal notranslate"><span class="pre">long</span> <span class="pre">long</span></code> are required to represent different ranges of values, but
+they are typically the same size!</p>
+<p>Another, subtle aspect of these ranges is that there seems to be a discrepancy in the number of
+signed and unsigned values. For instance, take the <code class="docutils literal notranslate"><span class="pre">char</span></code> type; the unsigned version can represent
+256 different numbers (0 through 255), whereas the signed version can only represent 255 (-127 to 0
+to 127). In all of these cases, the signed version must support one’s complement integer
+representation in contrast to the two’s complement arithmetic typical in modern architectures. As
+such, the value -128 (0x80) can typically be used as a <code class="docutils literal notranslate"><span class="pre">char</span></code> value, but this is technically
+outside the range for this type.</p>
+<div class="topic border border-dark rounded-lg bg-light px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-Note.png"><img alt="Decorative note icon" src="_images/CSF-Images-Note.png" style="width: 100%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Note</p><hr class="mt-1" />
+<p>Until the C99 standard was published, C had no built-in Boolean variable type to indicate true or
+false. Instead, C used an integer for this purpose, with the convention that 0 means <em>false</em> and
+any non-zero value means <em>true</em>. This convention is still frequently manipulated, particularly as a
+short-hand for condition checks. For instance, strcmp() function, which is used to compare two
+strings, returns 0 if the strings are identical; if not, <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code> returns either 1 or -1. Based
+on the convention that 0 means false, it is common to see code written as follows:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-2 mb-3 notranslate"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="k">if</span> <span class="p">(</span><span class="o">!</span> <span class="n">strcmp</span> <span class="p">(</span><span class="n">str1</span><span class="p">,</span> <span class="n">str2</span><span class="p">))</span>
+  <span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Strings are identical</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>If the strings <code class="docutils literal notranslate"><span class="pre">str1</span></code> and <code class="docutils literal notranslate"><span class="pre">str2</span></code> are identical, <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code> returns 0 (false). The logical
+negation operator (<code class="docutils literal notranslate"><span class="pre">!</span></code>) then flips this value; if the strings are identical, the condition in the
+if-statement is true. If the strings are not identical, <code class="docutils literal notranslate"><span class="pre">strcmp()</span></code> will return either 1 or -1,
+both of which evaluate to true; applying the <code class="docutils literal notranslate"><span class="pre">!</span></code> flips this value and the condition evaluates to
+false, skipping the body of the if-statement. Logically, the condition shown above is equivalent to
+testing <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">(strcmp</span> <span class="pre">(str1,</span> <span class="pre">str2)</span> <span class="pre">==</span> <span class="pre">0)</span></code>.</p>
+<p>C99 introduced a new header file, <code class="docutils literal notranslate"><span class="pre">stdbool.h</span></code>. This header defines a <code class="docutils literal notranslate"><span class="pre">bool</span></code> type, as well as the
+constants <code class="docutils literal notranslate"><span class="pre">true</span></code> and <code class="docutils literal notranslate"><span class="pre">false</span></code>. This new type is generally preferred, as it makes for more readable code.</p>
+</div>
+<div class="section" id="c99-fixed-width-types">
+<h2>10.3.1. C99 Fixed-width Types<a class="headerlink" href="#c99-fixed-width-types" title="Permalink to this headline">¶</a></h2>
+<p>In systems programming, this sort of inconsistent definition can lead to serious mistakes. If an
+embedded microcontroller (such as a tiny wireless sensor monitoring a car’s velocity) needs to send
+data to a centralized controller, it would be beneficial for both devices to agree on the size of
+various types of data. To fix this, systems code typically uses explicitly named types. These types,
+defined in <code class="docutils literal notranslate"><span class="pre">stdint.h</span></code>, are shown in <a class="reference external" href="#tblA-3">Table A.3</a>.</p>
+<center>
+<table class="table table-bordered">
+  <thead class="jmu-dark-purple-bg text-light">
+    <tr>
+      <th class="py-0 center">Signed type</th>
+      <th class="py-0 center"><code class="text-light">INT</code><em>n<code class="text-light">_MIN</code></td>
+      <th class="py-0 center"><code class="text-light">INT</code><em>n<code class="text-light">_MAX</code></td>
+      <th class="py-0 center">Unsigned type</th>
+      <th class="py-0 center"><code class="text-light">UINT</code><em>n<code class="text-light">_MAX</code></td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="py-0 center"><code>int8_t</code></td>
+      <td class="py-0 center">-128</td>
+      <td class="py-0 center">127</td>
+      <td class="py-0 center"><code>uint8_t</code></td>
+      <td class="py-0 center">255</td>
+    </tr>
+    <tr>
+      <td class="py-0 center"><code>int16_t</code></td>
+      <td class="py-0 center">-32768</td>
+      <td class="py-0 center">32767</td>
+      <td class="py-0 center"><code>uint16_t</code></td>
+      <td class="py-0 center">65535</td>
+    </tr>
+    <tr>
+      <td class="py-0 center"><code>int32_t</code></td>
+      <td class="py-0 center">-INT32_MAX-1</td>
+      <td class="py-0 center">2147483647</td>
+      <td class="py-0 center"><code>uint32_t</code></td>
+      <td class="py-0 center">4294967295U</td>
+    </tr>
+    <tr>
+      <td class="py-0 center"><code>int64_t</code></td>
+      <td class="py-0 center">-INT64_MAX-1</td>
+      <td class="py-0 center">9223372036854775807LL</td>
+      <td class="py-0 center"><code>uint64_t</code></td>
+      <td class="py-0 center">18446744073709551615ULL</td>
+    </tr>
+  </tbody>
+</table>
+<p class="center">Table A.3: C99 fixed-width integer types</p>
+</center>
+<br /><p>The type name is constructed as <code class="docutils literal notranslate"><span class="pre">int</span></code><em>n</em><code class="docutils literal notranslate"><span class="pre">_t</span></code> or <code class="docutils literal notranslate"><span class="pre">uint</span></code><em>n</em><code class="docutils literal notranslate"><span class="pre">_t</span></code>, where the n is one of 8, 16,
+32, or 64. For each size, there is a signed minimum (<code class="docutils literal notranslate"><span class="pre">INT</span></code><em>n</em><code class="docutils literal notranslate"><span class="pre">_MIN</span></code>), a signed maximum
+(<code class="docutils literal notranslate"><span class="pre">INT</span></code><em>n</em><code class="docutils literal notranslate"><span class="pre">_MAX</span></code>), and an unsigned maximum (<code class="docutils literal notranslate"><span class="pre">UINT</span></code><em>n</em><code class="docutils literal notranslate"><span class="pre">_MAX</span></code>). (The unsigned minimum is 0 for
+all sizes.) Note that <code class="docutils literal notranslate"><span class="pre">INT32_MIN</span></code> and <code class="docutils literal notranslate"><span class="pre">INT64_MIN</span></code> cannot be represented directly because of the
+way that C defines numeric constants. Instead, they have to be written in relation to the
+corresponding <code class="docutils literal notranslate"><span class="pre">INT</span></code><em>n</em><code class="docutils literal notranslate"><span class="pre">_MAX</span></code> values, but they are the values -2,147,483,648 and
+-9,223,372,036,854,775,808, respectively. Also observe that the large values need to be appended
+with U, LL, or ULL so that the C compiler will interpret the values correctly.</p>
+<p><a class="reference external" href="#cla-5">Code Listing A.5</a> illustrates a few key points about using these standard and fixed
+types. Lines 6 – 10 declare a <code class="docutils literal notranslate"><span class="pre">char</span></code> variable and print it both in ASCII (using <code class="docutils literal notranslate"><span class="pre">%c</span></code>) and as an
+integer value (in decimal, octal, and hexadecimal format). This code would work identically even if
+the declaration of the achar variable was changed to <code class="docutils literal notranslate"><span class="pre">uint8_t</span></code>, the 8-bit unsigned integer type.
+Lines 13 – 16 demonstrate the standard printing for an <code class="docutils literal notranslate"><span class="pre">int</span></code> type.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-5"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.5:</span>
+<span class="cm">   Using and printing various integer types</span>
+<span class="cm"> */</span>
+
+<span class="cm">/* Use char, printing it in 4 formats */</span>
+<span class="kt">char</span> <span class="n">achar</span> <span class="o">=</span> <span class="sc">&#39;A&#39;</span><span class="p">;</span> 
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;achar has value %c (character)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">achar</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;achar has value %hhd (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">achar</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;achar has value %hho (oct)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">achar</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;achar has value %04hhx (hex)</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">achar</span><span class="p">);</span>
+
+<span class="cm">/* Use basic int type, printing value in 3 formats */</span>
+<span class="kt">int</span> <span class="n">intval</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;intval has value %d (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">intval</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;intval has value %o (oct)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">intval</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;intval has value %04x (hex)</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">intval</span><span class="p">);</span>
+
+<span class="cm">/* Use 32-bit signed integer, printing value */</span>
+<span class="kt">int32_t</span> <span class="n">i32val</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;i32val has value %d (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i32val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;i32val has value %&quot;</span> <span class="n">PRId32</span> <span class="s">&quot; (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i32val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;i32val has value %&quot;</span> <span class="n">PRIo32</span> <span class="s">&quot; (oct)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i32val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;i32val has value %04&quot;</span> <span class="n">PRIx32</span> <span class="s">&quot; (hex)</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i32val</span><span class="p">);</span>
+
+<span class="cm">/* Use 64-bit unsigned integer, printing value */</span>
+<span class="kt">uint64_t</span> <span class="n">ui64val</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;ui64val has value %d (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ui64val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;ui64val has value %lld (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ui64val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;ui64val has value %&quot;</span> <span class="s">&quot;lld&quot;</span> <span class="s">&quot; (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ui64val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;ui64val has value %&quot;</span> <span class="n">PRId64</span> <span class="s">&quot; (dec)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ui64val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;ui64val has value %&quot;</span> <span class="n">PRIo64</span> <span class="s">&quot; (oct\)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ui64val</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;ui64val has value %04&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot; (hex)</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ui64val</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>The remaining lines (19 – 31) demonstrate similar handling using the fixed-width integer types.
+These format strings initially look rather confusing, because they exploit a feature of string
+constants that is often overlooked (or not taught) to those new to C: consecutive string constants
+are concatenated automatically by the compiler. For example, the code <code class="docutils literal notranslate"><span class="pre">printf</span> <span class="pre">(&quot;hello</span> <span class="pre">world&quot;);</span></code> is
+treated identically to <code class="docutils literal notranslate"><span class="pre">printf</span> <span class="pre">(&quot;hello</span> <span class="pre">&quot;</span>&#160;&#160;&#160; <span class="pre">&quot;world&quot;);</span></code> by the compiler. (The several white spaces
+between the strings are ignored and used here only for effect.)</p>
+<p>The format specifiers for these integer types are defined in the <code class="docutils literal notranslate"><span class="pre">inttypes.h</span></code> header. Within this
+file, there is a preprocessor definition that will translate <code class="docutils literal notranslate"><span class="pre">PRId32</span></code> or <code class="docutils literal notranslate"><span class="pre">PRIx64</span></code> into the
+appropriate character strings (<code class="docutils literal notranslate"><span class="pre">&quot;d&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;llx&quot;</span></code> in this case) from <a class="reference external" href="#tblA-2">Table A.2</a> for
+the target machine. In general, the format specifier has the format <code class="docutils literal notranslate"><span class="pre">PRI</span></code><em>fn</em>, where <em>n</em> is the
+size (8, 16, 32, or 64 bits) and <em>f</em> is the desired integer format (<code class="docutils literal notranslate"><span class="pre">d</span></code> or <code class="docutils literal notranslate"><span class="pre">i</span></code> for signed
+decimal, <code class="docutils literal notranslate"><span class="pre">u</span></code> for unsigned decimal, <code class="docutils literal notranslate"><span class="pre">o</span></code> for octal, <code class="docutils literal notranslate"><span class="pre">x</span></code> or <code class="docutils literal notranslate"><span class="pre">X</span></code> for hexadecimal). Consequently,
+the C compiler would treat lines 29 and 30 in <a class="reference external" href="#cla-5">Code Listing A.5</a> identically to line 28.
+The <code class="docutils literal notranslate"><span class="pre">PRId64</span></code> is translated by the processor into <code class="docutils literal notranslate"><span class="pre">&quot;lld&quot;</span></code>, so lines 29 and 30 literally become
+identical when the compiler begins to work with the code; the compiler then transparently
+concatenates the string constants to create the string shown in line 28. When compiling this code,
+observe that line 27 produces a warning, as the variable and the corresponding format specifier are
+specifying different sizes (64-bit for <code class="docutils literal notranslate"><span class="pre">uint64_t</span></code> and 32-bit for <code class="docutils literal notranslate"><span class="pre">%d</span></code>).</p>
+<div class="topic border border-dark rounded-lg alert-danger px-2 mb-3">
+<div class="figure align-left">
+<a class="reference internal image-reference" href="_images/CSF-Images-BugWarning.png"><img alt="Decorative bug warning" src="_images/CSF-Images-BugWarning.png" style="width: 90%;" /></a>
+</div>
+<p class="topic-title first pt-2 mb-1">Bug Warning</p><hr class="mt-1" />
+<p>The quotation marks around the C99 format strings is a common point of confusion that can lead to
+frustrating compiler errors. Specifically, note that there is a quote after the <code class="docutils literal notranslate"><span class="pre">%</span></code> character
+that begins the format specifier. This quote is necessary, as it terminates the string constant up
+to that point. Any additional characters that modify the format specifier (such as 0 to indicate
+leading zeros, a number to specify a fixed display width, or a <code class="docutils literal notranslate"><span class="pre">-</span></code> to indicate left-justification
+within that space) must appear before the quotation mark, as these are not part of the C99 format processing.</p>
+</div>
+<p>One common task with working with C types is using the <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> operator <a class="footnote-reference" href="#f56" id="id5">[2]</a> to examine the
+number of bytes allocated for a variable or a type. In the case of a type, <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> indicates
+how many bytes <em>would</em> be allocated for such a variable instance. <a class="reference external" href="#cla-6">Code Listing A.6</a>
+demonstrates the use of <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code>, based off of the variable declarations in <a class="reference external" href="#cla-5">Code Listing A.5</a>. As the value returned from <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> is considered to be of type <code class="docutils literal notranslate"><span class="pre">size_t</span></code>, the
+<code class="docutils literal notranslate"><span class="pre">%zd</span></code> format specifier is required when printing these values. On most systems, lines 7, 8, 12, and
+13 will all produce the same size result (4), as <code class="docutils literal notranslate"><span class="pre">int</span></code> and <code class="docutils literal notranslate"><span class="pre">int32_t</span></code> are typically identical.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-6"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.6:</span>
+<span class="cm">   Using sizeof() for introspection of variable and type sizes</span>
+<span class="cm"> */</span>
+
+<span class="cm">/* Use sizeof to get the size of a variable name */</span>
+<span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">intval</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;intval has size %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;i32val has size %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">i32val</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;ui64val has size %zd</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">ui64val</span><span class="p">));</span>
+
+<span class="cm">/* Use sizeof to get the size of a variable type */</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Primitive int type has size %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;C99 int32_t type has size %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">int32_t</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;C99 int64_t type has size %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">int64_t</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Primitive size_t type has size %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">size_t</span><span class="p">));</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="pointer-basics">
+<h2>10.3.2. Pointer Basics<a class="headerlink" href="#pointer-basics" title="Permalink to this headline">¶</a></h2>
+<p>As this Appendix is intended as a re-introduction to C, readers are generally assumed to have had
+some prior exposure to key features of the language, including pointers. However, few concepts in
+programming cause as many problems or as much frustration as pointers; as such, we will reiterate
+the basic concept here, particularly as it relates to the preceding discussion on <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code>.
+Later in this Appendix, we will also introduce some intermediate or advanced techniques of working
+with pointers. To start, we emphasize the following key idea:</p>
+<blockquote class="blockquote text-center">
+  <p>A pointer is a variable that stores an address.</p>
+</blockquote><p>When a pointer variable is declared, its declaration generally indicates what type of data is stored at that address. This target type is generally included when discussing a pointer’s type, but it does not change the fact that the pointer stores an address. For instance, by declaring <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">*x</span> <span class="pre">=</span> <span class="pre">NULL;</span></code>, we have declared the variable named <code class="docutils literal notranslate"><span class="pre">x</span></code> to be a <em>pointer to an</em> <code class="docutils literal notranslate"><span class="pre">int</span></code>. That is, we might write that <code class="docutils literal notranslate"><span class="pre">x</span></code> is an <code class="docutils literal notranslate"><span class="pre">int*</span></code>. <strong>It cannot be overstated that this statement is different from saying that</strong> <code class="docutils literal notranslate"><span class="pre">x</span></code> <strong>is an</strong> <code class="docutils literal notranslate"><span class="pre">int</span></code>. Part of what makes this subtly complex is that addresses are, fundamentally, integer values that have a particular meaning. <a class="reference external" href="#cla-7">Code Listing A.7</a> illustrates this confusion in a common manner.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-7"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.7:</span>
+<span class="cm">   A subtle segfault bug</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span> <span class="n">ival</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+<span class="kt">int</span> <span class="o">*</span><span class="n">iptr</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ival</span><span class="p">;</span> <span class="c1">// iptr points to ival</span>
+
+<span class="o">*</span><span class="n">iptr</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// sets ival to 0</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;iptr = %p; *iptr = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">iptr</span><span class="p">,</span> <span class="o">*</span><span class="n">iptr</span><span class="p">);</span>
+
+<span class="n">iptr</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// makes iptr point to nowhere (i.e., NULL)</span>
+<span class="cm">/* next line causes a segfault since iptr is now NULL */</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;iptr = %p; *iptr = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">iptr</span><span class="p">,</span> <span class="o">*</span><span class="n">iptr</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>Lines 5 and 6 declare two variables, one (<code class="docutils literal notranslate"><span class="pre">ival</span></code>) has the type <code class="docutils literal notranslate"><span class="pre">int</span></code> and the other (<code class="docutils literal notranslate"><span class="pre">iptr</span></code>)
+has the type <code class="docutils literal notranslate"><span class="pre">int*</span></code>. The value of <code class="docutils literal notranslate"><span class="pre">ival</span></code> is initialized to 10, whereas the value of <code class="docutils literal notranslate"><span class="pre">iptr</span></code> is
+the address of <code class="docutils literal notranslate"><span class="pre">ival</span></code> (<code class="docutils literal notranslate"><span class="pre">&amp;ival</span></code>). That is, <code class="docutils literal notranslate"><span class="pre">iptr</span></code> is initialized so that it points to <code class="docutils literal notranslate"><span class="pre">ival</span></code>.
+We might also say that <code class="docutils literal notranslate"><span class="pre">iptr</span></code> is an indirect reference to <code class="docutils literal notranslate"><span class="pre">ival</span></code>. Line 8 dereferences the
+pointer (i.e., follows the arrow to the data pointed to) and sets that portion of memory to 0;
+specifically, by dereferencing the pointer, line 8 is changing the value of <code class="docutils literal notranslate"><span class="pre">ival</span></code> from 10 to 0.
+As such, line 9 runs without error, printing the value of <code class="docutils literal notranslate"><span class="pre">iptr</span></code> (which is the address of
+<code class="docutils literal notranslate"><span class="pre">ival</span></code>) along with the new value of <code class="docutils literal notranslate"><span class="pre">ival</span></code> (because we are again dereferencing the pointer).</p>
+<p>Line 11 is fundamentally different, however. Since line 11 is not dereferencing the pointer (note
+that there is no <code class="docutils literal notranslate"><span class="pre">*</span></code> on this line), it is changing the value of <code class="docutils literal notranslate"><span class="pre">iptr</span></code> itself. Recall from above
+that a pointer stores an address; <strong>if we change a pointer’s value, we are changing the memory
+address that we are pointing to</strong>. By setting <code class="docutils literal notranslate"><span class="pre">iptr</span></code> to 0, the pointer now points to address 0,
+which is nothingness. That is, <code class="docutils literal notranslate"><span class="pre">iptr</span></code> no longer points to <code class="docutils literal notranslate"><span class="pre">ival</span></code>; it is now a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointer
+(<code class="docutils literal notranslate"><span class="pre">NULL</span></code> is literally the constant 0 in C!). As such, line 13 causes a segmentation fault, because
+it tries to deference a null pointer (<code class="docutils literal notranslate"><span class="pre">*iptr</span></code>).</p>
+<p>A common misunderstanding about this example is that setting the pointer to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> does not
+necessarily cause an error. <a class="reference external" href="#cla-8">Code Listing A.8</a> extends <a class="reference external" href="#cla-7">A.7</a>, with the exception
+that a new line is added just before the final printf() statement. In <a class="reference external" href="#cla-7">Code Listing A.7</a>,
+the code set <code class="docutils literal notranslate"><span class="pre">iptr</span></code> to 0 and immediately called <code class="docutils literal notranslate"><span class="pre">printf()</span></code>; in <a class="reference external" href="#cla-8">Code Listing A.8</a>,
+line 7 occurs between these steps, setting <code class="docutils literal notranslate"><span class="pre">iptr</span></code> to point back to <code class="docutils literal notranslate"><span class="pre">ival</span></code>. In restoring
+<code class="docutils literal notranslate"><span class="pre">iptr</span></code>’s value to point to a valid location, <a class="reference external" href="#cla-8">Code Listing A.8</a> removes the segmentation
+fault that occurred in <a class="reference external" href="#cla-7">A.7</a>. In short, setting a pointer’s value to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> does not
+cause a segmentation fault; the fault only occurs once the pointer is dereferenced.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-8"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.8:</span>
+<span class="cm">   Restoring successful execution to Code Listing A.7</span>
+<span class="cm"> */</span>
+
+<span class="n">iptr</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// makes iptr point to nowhere (i.e., NULL)</span>
+
+<span class="n">iptr</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ival</span><span class="p">;</span> <span class="c1">// makes iptr point to ival again</span>
+
+<span class="cm">/* next line no longer segfaults */</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;iptr = %p; *iptr = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">iptr</span><span class="p">,</span> <span class="o">*</span><span class="n">iptr</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>To return to the discussion of type sizes, a common misunderstanding arises when we combine the
+concepts of pointers and <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code>. Recall two facts: <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> returns the number of bytes
+required for a variable of a particular type, and all pointers store addresses (and nothing else!).
+As such, calling sizeof() on a pointer will always return the same answer: the size of an address.
+<strong>From the perspective of</strong>  <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code><strong>, pointer declarations are all identical</strong>.
+<a class="reference external" href="#cla-9">Code Listing A.9</a> demonstrates this fact. The variables <code class="docutils literal notranslate"><span class="pre">ival</span></code> and <code class="docutils literal notranslate"><span class="pre">cval</span></code> have distinct sizes (typically, 4
+bytes for <code class="docutils literal notranslate"><span class="pre">ival</span></code> as an <code class="docutils literal notranslate"><span class="pre">int</span></code> and 1 byte for <code class="docutils literal notranslate"><span class="pre">cval</span></code> as a <code class="docutils literal notranslate"><span class="pre">char</span></code>). In contrast, <code class="docutils literal notranslate"><span class="pre">iptr</span></code> and
+<code class="docutils literal notranslate"><span class="pre">cptr</span></code> have different types, but they are the same size (8 bytes, assuming this code runs on a
+64-bit CPU architecture). As such, the assertions on lines 17 and 18 are both true.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-9"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.9:</span>
+<span class="cm">   Using sizeof() with pointers produces different results from basic types</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span> <span class="n">ival</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+<span class="kt">int</span> <span class="o">*</span><span class="n">iptr</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ival</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Size of ival = %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">ival</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Size of iptr = %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">iptr</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Size of *iptr = %zd</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="o">*</span><span class="n">iptr</span><span class="p">));</span>
+
+<span class="kt">char</span> <span class="n">cval</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">cptr</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">cval</span><span class="p">;</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Size of cval = %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">cval</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Size of cptr = %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">cptr</span><span class="p">));</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;Size of *cptr = %zd</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="o">*</span><span class="n">cptr</span><span class="p">));</span>
+
+<span class="n">assert</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="o">==</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">));</span>
+<span class="n">assert</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="o">!=</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">char</span><span class="p">));</span>
+<span class="n">assert</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="o">*</span><span class="n">iptr</span><span class="p">)</span> <span class="o">!=</span> <span class="k">sizeof</span> <span class="p">(</span><span class="o">*</span><span class="n">cptr</span><span class="p">));</span>
+</pre></div>
+</td></tr></table></div>
+<p>Lastly, observe that <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> can be called successfully on pointer dereferences, as shown in
+lines 9 and 15. In this case, the size returned is the number of bytes for the referenced type, not
+the pointer. Line 9 will print that the size is 4, as that is the typical size for an <code class="docutils literal notranslate"><span class="pre">int</span></code> (which
+is the type of <code class="docutils literal notranslate"><span class="pre">*iptr</span></code>, also known as <code class="docutils literal notranslate"><span class="pre">ival</span></code>). Line 15 will print that the size is 1, given that
+<code class="docutils literal notranslate"><span class="pre">*cptr</span></code> (also known as <code class="docutils literal notranslate"><span class="pre">cval</span></code>) is a <code class="docutils literal notranslate"><span class="pre">char</span></code>. Consequently, the assertion on line 19 holds, as
+<code class="docutils literal notranslate"><span class="pre">sizeof(*iptr)</span></code> gets the size of an <code class="docutils literal notranslate"><span class="pre">int</span></code>, whereas <code class="docutils literal notranslate"><span class="pre">sizeof(*cptr)</span></code> is the size of a <code class="docutils literal notranslate"><span class="pre">char</span></code>.</p>
+<p>Given that a pointer is a variable that stores an address, an intuitive follow-up question is
+whether or not a pointer can store the address of a pointer. The answer is yes, and this is common
+in a variety of circumstances that we will examine later in this Appendix.
+<a class="reference external" href="#cla-10">Code Listing A.10</a> illustrates an example of using pointers to pointers. Line 6 starts by declaring
+<code class="docutils literal notranslate"><span class="pre">iptr</span></code> (abbreviation of “integer pointer”) as an <code class="docutils literal notranslate"><span class="pre">int*</span></code> and making it point to <code class="docutils literal notranslate"><span class="pre">ival</span></code>. Line 7
+takes this a step farther, making <code class="docutils literal notranslate"><span class="pre">pptr</span></code> (“pointer pointer”) be a pointer to a pointer to an
+<code class="docutils literal notranslate"><span class="pre">int</span></code> (<code class="docutils literal notranslate"><span class="pre">int**</span></code>), and initializing it to point to <code class="docutils literal notranslate"><span class="pre">iptr</span></code>; this initialization is correct, as
+<code class="docutils literal notranslate"><span class="pre">pptr</span></code> is pointing to an <code class="docutils literal notranslate"><span class="pre">int*</span></code>. Line 8 introduces the use of void with a pointer structure;
+specifically, the declaration indicates the <code class="docutils literal notranslate"><span class="pre">vptr</span></code> (“<code class="docutils literal notranslate"><span class="pre">void</span></code> pointer”) is a pointer to a pointer
+to a pointer to <em>something</em>, but the type of that something is unknown.</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-0 mb-3 notranslate" id="cla-10"><table class="highlighttable"><tr><td class="linenos px-0 mx-0"><div class="linenodiv"><pre class="mb-0"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre></div></td><td class="code"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="cm">/* Code Listing A.10:</span>
+<span class="cm">   Multiple layers of indirection with pointers to pointers</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span> <span class="n">ival</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+<span class="kt">int</span> <span class="o">*</span><span class="n">iptr</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ival</span><span class="p">;</span>
+<span class="kt">int</span> <span class="o">**</span><span class="n">pptr</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">iptr</span><span class="p">;</span>
+<span class="kt">void</span> <span class="o">***</span><span class="n">vptr</span> <span class="o">=</span> <span class="p">(</span><span class="kt">void</span><span class="o">***</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">pptr</span><span class="p">;</span> <span class="c1">// this is okay</span>
+
+<span class="cm">/* Multiple layers of redirection to the same place */</span>
+<span class="n">printf</span> <span class="p">(</span><span class="s">&quot;%d = %d = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ival</span><span class="p">,</span> <span class="o">*</span><span class="n">iptr</span><span class="p">,</span> <span class="o">**</span><span class="n">pptr</span><span class="p">);</span>
+<span class="c1">// NOT ALLOWED: printf (&quot;%d\n&quot;, ***vptr);</span>
+
+<span class="cm">/* The size of any pointer is always the same */</span>
+<span class="n">assert</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="n">iptr</span><span class="p">)</span> <span class="o">==</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">pptr</span><span class="p">));</span>
+<span class="n">assert</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="n">iptr</span><span class="p">)</span> <span class="o">==</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">vptr</span><span class="p">));</span>
+
+<span class="cm">/* Just for the full, ridiculous effect */</span>
+<span class="n">assert</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span> <span class="o">==</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">int</span><span class="o">******</span><span class="p">));</span>
+<span class="n">assert</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span> <span class="o">==</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">double</span><span class="o">***</span><span class="p">));</span>
+</pre></div>
+</td></tr></table></div>
+<p><a href="BasicTypes.html#cpointer">Figure  10.3.4</a> illustrates the relationship of the pointers as declared in lines 5 – 8.
+Line 11 prints the value 10 multiple times by dereferencing the pointers as needed. Specifically,
+line 11 starts by printing <code class="docutils literal notranslate"><span class="pre">ival</span></code> directly, and the value of <code class="docutils literal notranslate"><span class="pre">ival</span></code> is 10. Then, the value of
+<code class="docutils literal notranslate"><span class="pre">ival</span></code> is printed again by dereferencing <code class="docutils literal notranslate"><span class="pre">iptr</span></code>; since <code class="docutils literal notranslate"><span class="pre">iptr</span></code> is an <code class="docutils literal notranslate"><span class="pre">int*</span></code> and the value of
+<code class="docutils literal notranslate"><span class="pre">iptr</span></code> is <code class="docutils literal notranslate"><span class="pre">&amp;ival</span></code>, dereferencing it once (as <code class="docutils literal notranslate"><span class="pre">*iptr</span></code>) ends up at the <code class="docutils literal notranslate"><span class="pre">int</span></code> variable
+<code class="docutils literal notranslate"><span class="pre">ival</span></code>. Similarly, the value of <code class="docutils literal notranslate"><span class="pre">ival</span></code> is printed one more time, as <code class="docutils literal notranslate"><span class="pre">pptr</span></code> is dereferenced
+twice (<code class="docutils literal notranslate"><span class="pre">**pptr</span></code>); the first dereference <code class="docutils literal notranslate"><span class="pre">*</span></code> follows the arrow from <code class="docutils literal notranslate"><span class="pre">pptr</span></code> to <code class="docutils literal notranslate"><span class="pre">iptr</span></code> and the
+second <code class="docutils literal notranslate"><span class="pre">*</span></code> follows the arrow from <code class="docutils literal notranslate"><span class="pre">iptr</span></code> to <code class="docutils literal notranslate"><span class="pre">ival</span></code>.</p>
+<div class="figure mb-2 align-center" id="id11">
+<span id="cpointer"></span><a class="reference internal image-reference" href="_images/CSF-Images.A.1.png"><img class="p-3 mb-2 align-center border border-dark rounded-lg" alt="The pointer structure of Code Listing A.10" src="_images/CSF-Images.A.1.png" style="width: 60%;" /></a>
+<p class="caption align-center px-3"><span class="caption-text"> Figure 10.3.4: The pointer structure of Code Listing A.10</span></p>
+</div>
+<p>The comment on line 12 indicates that we cannot simply dereference <code class="docutils literal notranslate"><span class="pre">vptr</span></code> three times to get the
+same value. The problem is that dereferencing requires knowing the type that we are pointing to. The
+<code class="docutils literal notranslate"><span class="pre">void</span></code> pointer type—regardless of how many layers of indirection are present—serves the same
+purpose in C as the <code class="docutils literal notranslate"><span class="pre">Object</span></code> class in Java; it acts as a catch-all type for passing around
+pointers. We could successfully dereference <code class="docutils literal notranslate"><span class="pre">vptr</span></code> by first casting it (i.e., by using <code class="docutils literal notranslate"><span class="pre">***((int***)vptr)</span></code>).</p>
+<p>Lines 14 – 20 highlight another key insight about pointers: <strong>All pointers have the same size</strong>. It
+is a very common misunderstanding to think that the type of the pointer (<code class="docutils literal notranslate"><span class="pre">int*</span></code> vs. <code class="docutils literal notranslate"><span class="pre">char*</span></code>) has
+some influence on the size of the pointer. This is not true. All pointers are allocated exactly the
+amount of space required to store an address on the target architecture. The pointer’s type is only
+important for dereferencing the pointer. Note that the assertion on line 20 also holds. A common
+misunderstanding is that <code class="docutils literal notranslate"><span class="pre">void*</span></code> either has no size or it points to nothing; neither statement is
+true (unless the pointer is specifically initialized to <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, then the latter is true). The
+<code class="docutils literal notranslate"><span class="pre">void*</span></code> type means that we have a pointer variable and its size is the same as any other pointer,
+but we do not know the size of what it is pointing to. We can cast a <code class="docutils literal notranslate"><span class="pre">void*</span></code> to be any other type
+of pointer; doing so would indicate how to use the bytes being pointed to when dereferencing the pointer.</p>
+<table class="docutils footnote" frame="void" id="f55" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>To be pedantic, <code class="docutils literal notranslate"><span class="pre">char</span></code> and <code class="docutils literal notranslate"><span class="pre">signed</span> <span class="pre">char</span></code> are distinct types in C. The <code class="docutils literal notranslate"><span class="pre">char</span></code> type is
+defined as the smallest addressable unit for containing a machine’s basic character set; as this
+basic character set is ASCII for modern systems, the smallest addressable unit is an 8-bit byte.
+The <code class="docutils literal notranslate"><span class="pre">signed</span> <span class="pre">char</span></code> is defined in terms of the range shown.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f56" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[2]</a></td><td>The <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> operator looks like a function and generally behaves like one, taking an
+input argument and return a value. This appearance is deceiving, though, as <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> does not
+execute according to the standard function calling semantics. Instead, <code class="docutils literal notranslate"><span class="pre">sizeof()</span></code> is an operator
+that is built into the language, like <code class="docutils literal notranslate"><span class="pre">+</span></code> to indicate addition.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+    </div>
+
+    
+  </body>
+  </html>

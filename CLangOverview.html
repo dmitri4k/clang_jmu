@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>10.1. C Language Reintroduction &mdash; Computer Systems Fundamentals</title>
+    
+    <link rel="stylesheet" href="_static/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+    <link rel="stylesheet" href="_static/css/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/normalize.css" type="text/css" />
+    <link rel="stylesheet" href="../../../JSAV/css/JSAV.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaMOD-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/jquery-1.11.4-smoothness-ui.css" type="text/css" />
+    <link rel="stylesheet" href="../../../lib/odsaStyle-min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/csf.css" type="text/css" />
+
+    <style>
+      .underline { text-decoration: underline; }
+    </style>
+
+  </head><body>
+       
+    <div class="container">
+
+<h1>10.1. C Language Reintroduction<a class="headerlink" href="#c-language-reintroduction" title="Permalink to this headline">¶</a></h1>
+<blockquote class="blockquote text-center">
+    <p>“Program testing can be used to show the presence of bugs, but never to show their absence!”
+    <footer class="blockquote-footer">Edsger Dijkstra</footer>
+</blockquote><p>This book assumes some prior experience with the C programming language. However, the way that C is
+taught as a programming language and how it is used in the systems world are not always the same. As
+a simple example, consider the following trivial example of C code:</p>
+<div class="highlight-c border border-dark rounded-lg bg-light px-2 mb-3 notranslate"><div class="highlight bg-light"><pre class="mb-0"><span></span><span class="kt">int</span> <span class="n">maximum_size</span> <span class="o">=</span> <span class="mi">65536</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>In many examples of systems code, this type declaration is too vague to be safe. Specifically,
+according to the C language specification, <strong>there is no fixed size for the</strong> <code class="docutils literal notranslate"><span class="pre">int</span></code> <strong>type</strong>. While an
+<code class="docutils literal notranslate"><span class="pre">int</span></code> can often be assumed (on modern laptops, desktops, or server machines) to be four bytes in
+size, it doesn’t have to be. On some embedded systems, for instance, an <code class="docutils literal notranslate"><span class="pre">int</span></code> is only two bytes in
+size. This declaration would then be a problem, because the value <strong>65,536 cannot be represented as
+a two-byte signed integer</strong> (which range from -32,768 to 32,767). Consequently, systems programmers
+typically use more explicit types that clearly indicate the exact size, such as <code class="docutils literal notranslate"><span class="pre">uint32_t</span></code>
+(unsigned 32-bit integer).</p>
+<p>This Appendix is intended as a re-introduction to the C language as used by this text. It is not
+intended as a complete introduction for readers who have never used C before. For instance, there is
+no coverage here of standard control structures, such as loops or conditional statements. We also do
+not cover file-related functions (such as <code class="docutils literal notranslate"><span class="pre">fopen()</span></code>) that use pointers to FILE instances, as these
+functions are oriented toward ASCII-formatted text files; systems programming typically involves
+working with binary-formatted data instead. Instead, this Appendix focuses on intermediate or
+advanced features of C that are commonly used in systems programming. We start this Appendix with a
+discussion of how to consult documentation and debugging, as these are critical skills for systems
+programming.</p>
+</div>
+    </div>
+  </body>
+</html>

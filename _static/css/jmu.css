@@ -1,0 +1,190 @@
+/* Move down content because we have a fixed navbar that is 3.5rem tall */
+body { padding-top: 3.5rem; }
+body.no-top { padding-top: 0; }
+
+code { color: #595959; font-family: Menlo, Monaco, monospace; }
+pre { font-family: Menlo, Monaco, monospace; }
+
+@media screen and (max-width: 991px) {
+	code, pre { font-size: 0.83em; }
+	code.fs80 { font-size: 0.8em; }
+	code.fs70 { font-size: 0.7em; }
+}
+@media screen and (max-width: 767px) {
+	code, pre { font-size: 0.65em; }
+	code.fs65 { font-size: 0.65em; }
+	code.fs55 { font-size: 0.55em; }
+	code.fs52 { font-size: 0.52em; }
+}
+@media screen and (max-width: 575px) {
+	code, pre { font-size: 0.63em; }
+	code.fs52 { font-size: 0.52em; }
+}
+
+/* Default theme colors */
+.jmu-dark-purple-bg       { background: #450084; }
+.jmu-dark-purple          { color: #450084; }
+.jmu-purple-bg            { background: #b599ce; }
+.jmu-purple               { color: #b599ce; }
+.jmu-light-purple-bg      { background: #dacce6; }
+.jmu-light-purple         { color: #dacce6; }
+.jmu-dark-gold-bg         { background: #ad9c65; }
+.jmu-dark-gold            { color: #ad9c65; }
+.jmu-gold-bg              { background: #cbb677; }
+.jmu-gold                 { color: #cbb677; }
+.jmu-gold:hover           { color:#450084; background:#ad9c65;
+                      -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 3px; }
+.jmu-gold-no-hover        { color: #cbb677; }
+.jmu-gold-no-hover:hover  { color: #cbb677; }
+.jmu-light-gold-bg        { background: #f4efe1; }
+.jmu-light-gold           { color: #f4efe1; }
+.jmu-slate-bg             { background: #333333; }
+.jmu-slate                { color: #333333; }
+.jmu-dark-gray-bg         { background: #595959; }
+.jmu-dark-gray            { color: #595959; }
+.jmu-gray-bg              { background: #b2b2b2; }
+.jmu-gray                 { color: #b2b2b2; }
+.jmu-light-gray-bg        { background: #d6d6d6; }
+.jmu-light-gray           { color: #d6d6d6; }
+.jmu-dark-green-bg        { background: #5f791c; }
+.jmu-dark-green           { color: #5f791c; }
+.jmu-green-bg             { background: #adcc23; }
+.jmu-green                { color: #adcc23; }
+.jmu-light-green-bg       { background: #deeba7; }
+.jmu-light-green          { color: #deeba7; }
+.jmu-dark-blue-bg         { background: #3c738b; }
+.jmu-dark-blue            { color: #3c738b; }
+.jmu-blue-bg              { background: #5498b6; }
+.jmu-blue                 { color: #5498b6; }
+.jmu-light-blue-bg        { background: #d2ebf5; }
+.jmu-light-blue           { color: #d2ebf5; }
+.text-white               { color: #ffffff; }
+
+.navbar-custom {
+    background-color: #450084;
+}
+.navbar-custom .navbar-brand,
+.navbar-custom .navbar-brand:hover,
+.navbar-custom .navbar-text {
+    color: #cbb677;
+}
+
+/* TODO: Make this active when item is clicked to hide dropdown */
+.navbar-custom .navbar-nav .nav-link {
+    color: #cbb677;
+    background: #450084;
+}
+
+/* TODO: .nav-item.show has square corners, not rounded */
+.navbar-custom .nav-item.show .nav-link,
+.navbar-custom .nav-item:hover .nav-link {
+    color: #450084;
+    background: #cbb677;
+}
+
+.jumbotron-custom {
+	padding: 2rem 0rem;
+}
+
+th.center { text-align: center; vertical-align: middle; }
+td.middle { vertical-align: middle; }
+td.center { text-align: center; vertical-align: middle; }
+
+.xborder-highlight { border-right: thick double #3c738b; border-left: thick double #3c738b; }
+
+h1, h2, h3, h4, h5, h6 { font-family: 'Palatino Linotype', Palatino, Lucida, Times, serif; font-weight:bolder; }
+
+p, a, li, button { font-family: Arial, Helvetica, sans-serif; }
+
+/* Make links use .jmu-blue for color */
+a, a:hover { font-weight:bold; color:#450084; }
+button, .button-link { text-decoration:none; font-weight:bold; color:#450084; }
+.button-link-no-blue { text-decoration:none; font-weight:bold; }
+
+.bs-callout {
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+}
+.bs-callout h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.bs-callout p:last-child {
+    margin-bottom: 0;
+}
+.bs-callout code {
+    border-radius: 3px;
+}
+.bs-callout+.bs-callout {
+    margin-top: -5px;
+}
+.bs-callout-default {
+    border-left-color: #777;
+}
+.bs-callout-default h4 {
+    color: #777;
+}
+.bs-callout-primary {
+    border-left-color: #428bca;
+}
+.bs-callout-primary h4 {
+    color: #428bca;
+}
+.bs-callout-success {
+    border-left-color: #5cb85c;
+}
+.bs-callout-success h4 {
+    color: #5cb85c;
+}
+.bs-callout-danger {
+    border-left-color: #d9534f;
+}
+.bs-callout-danger h4 {
+    color: #d9534f;
+}
+.bs-callout-warning {
+    border-left-color: #f0ad4e;
+}
+.bs-callout-warning h4 {
+    color: #f0ad4e;
+}
+.bs-callout-info {
+    border-left-color: #5bc0de;
+}
+.bs-callout-info h4 {
+    color: #5bc0de;
+}
+
+.scrollable-menu {
+    height: auto;
+    max-height: 500px;
+    overflow-x: hidden;
+}
+
+dt, .label {
+	  padding-top: 68px;
+    margin-top: -68px;
+    -webkit-background-clip: content-box;
+    background-clip: content-box;
+}
+
+blockquote p {
+	font-family: 'Garamond', Georgia, Times, serif;
+	font-size: 1.6em;
+}
+
+blockquote footer.blockquote-footer {
+	font-family: 'Garamond', Georgia, Times, serif;
+	font-size: 1.4em;
+}
+
+@media screen and (max-width: 1199px) {
+	.logo-wrap { float: left; }
+}
+
+@media screen and {min-width: 1200px} {
+	.logo-wrap { float: none; }
+}
